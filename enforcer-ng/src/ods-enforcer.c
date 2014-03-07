@@ -44,6 +44,7 @@
 #include <sys/socket.h> /* socket(), connect(), shutdown() */
 #include <sys/un.h>
 #include <unistd.h> /* exit(), read(), write() */
+#include <getopt.h>
 
 /* According to earlier standards, we need sys/time.h, sys/types.h, unistd.h for select() */
 #include <sys/types.h>
@@ -288,6 +289,7 @@ interface_start(const char* cmd_arg, const char* servsock_filename)
 }
 
 
+
 /**
  * Main. start interface tool.
  *
@@ -296,35 +298,31 @@ int
 main(int argc, char* argv[])
 {
     char* cmd = NULL;
-    int ret = 0;
-
-    allocator_type* clialloc = allocator_create(malloc, free);
-    if (!clialloc) {
-        fprintf(stderr,"error, malloc failed for client\n");
-        exit(1);
-    }
+    int error, c, options_index = 0;
+    static struct option long_options[] = {
+        {"help", no_argument, 0, 'h'},
+        { 0, 0, 0, 0}
+    };
+    
     ods_log_init(NULL, 0, 0);
 
-    /*  concat arguments an add 1 extra char for
-        adding '\n' char later on, but only when argc > 1 */
-    if (argc > 1) {
-        cmd = ods_str_join(clialloc, argc-1, &argv[1], ' ');
-        if (!cmd) {
-            fprintf(stderr, "memory allocation failed\n");
-            exit(1);
+    /* parse the commandline */
+    while ((c=getopt_long(argc, argv, "h",
+        long_options, &options_index)) != -1) {
+        switch (c) {
+            case 'h':
+                usage(stdout);
+                exit(0);
+            default:
+                /* unrecognized options */
+                exit(1);
         }
     }
-
-    /* main stuff */
-    if (cmd && (ods_strcmp(cmd, "-h") == 0 || ods_strcmp(cmd, "--help") == 0)) {
-        usage(stdout);
-        ret = 1;
-    } else {
-        ret = interface_start(cmd, OPENDNSSEC_ENFORCER_SOCKETFILE);
-    }
-
-    /* done */
-    allocator_deallocate(clialloc, (void*) cmd);
-    allocator_cleanup(clialloc);
-    return ret;
+    argc -= optind;
+    argv += optind;
+    if (argc != 0) 
+        cmd = ods_strcat_delim(argc, argv, ' ');
+    error = interface_start(cmd, OPENDNSSEC_ENFORCER_SOCKETFILE);
+    free(cmd);
+    return error;
 }
