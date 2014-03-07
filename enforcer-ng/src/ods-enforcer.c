@@ -30,10 +30,6 @@
  */
 
 #include "config.h"
-#include "shared/allocator.h"
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/str.h"
 
 #include <errno.h>
 #include <fcntl.h> /* fcntl() */
@@ -45,18 +41,19 @@
 #include <sys/un.h>
 #include <unistd.h> /* exit(), read(), write() */
 #include <getopt.h>
-
 /* According to earlier standards, we need sys/time.h, sys/types.h, unistd.h for select() */
 #include <sys/types.h>
 #include <sys/time.h>
-
-/* cmd history */
 #include <stdlib.h>
-
 #ifdef HAVE_READLINE
-#include <readline/readline.h>
-#include <readline/history.h>
+    /* cmd history */
+    #include <readline/readline.h>
+    #include <readline/history.h>
 #endif
+
+#include "shared/file.h"
+#include "shared/log.h"
+#include "shared/str.h"
 
 static const char* cli_str = "client";
 
