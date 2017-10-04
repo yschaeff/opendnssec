@@ -27,6 +27,7 @@ ods_signerd_SOURCES=		ods-signerd.c \
 				daemon/signercommands.c daemon/signercommands.h \
 				daemon/dnshandler.c daemon/dnshandler.h \
 				daemon/xfrhandler.c daemon/xfrhandler.h \
+				daemon/httpd.c daemon/httpd.h \
 				daemon/engine.c daemon/engine.h \
 				daemon/signertasks.c daemon/signertasks.h \
 				parser/addnsparser.c parser/addnsparser.h \

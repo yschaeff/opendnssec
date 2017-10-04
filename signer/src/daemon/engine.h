@@ -41,6 +41,7 @@ typedef struct engine_struct engine_type;
 #include "cmdhandler.h"
 #include "daemon/dnshandler.h"
 #include "daemon/xfrhandler.h"
+#include "daemon/httpd.h"
 #include "scheduler/worker.h"
 #include "scheduler/schedule.h"
 #include "status.h"
@@ -69,6 +70,7 @@ struct engine_struct {
     zonelist_type* zonelist;
     dnshandler_type* dnshandler;
     xfrhandler_type* xfrhandler;
+    struct httpd *httpd;
     edns_data_type edns;
 };
 

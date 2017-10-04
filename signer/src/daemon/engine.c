@@ -173,6 +173,20 @@ engine_stop_xfrhandler(engine_type* engine)
     engine->xfrhandler->engine = NULL;
 }
 
+static void
+engine_start_httpd(engine_type* engine)
+{
+    ods_log_debug("[%s] starting httpd", engine_str);
+    engine->httpd->engine = engine;
+    httpd_start(engine->httpd);
+}
+
+static void
+engine_stop_httpd(engine_type* engine)
+{
+    ods_log_debug("[%s] stoping httpd", engine_str);
+    httpd_stop(engine->httpd);
+}
 
 /**
  * Drop privileges.
@@ -328,6 +342,10 @@ engine_setup_initialize(engine_type* engine, int* fdptr)
     if (!engine->xfrhandler) {
         return ODS_STATUS_XFRHANDLER_ERR;
     }
+    engine->httpd = httpd_create(engine->config);
+    if (!engine->httpd) {
+        return ODS_STATUS_HTTPD_ERR;
+    }
     if (engine->dnshandler) {
         if (socketpair(AF_UNIX, SOCK_DGRAM, 0, sockets) == -1) {
             return ODS_STATUS_XFRHANDLER_ERR;
@@ -438,6 +456,7 @@ engine_setup_netwstart(engine_type* engine)
 {
     engine_start_dnshandler(engine);
     engine_start_xfrhandler(engine);
+    engine_start_httpd(engine);
     tsig_handler_init();
     return ODS_STATUS_OK;
 }
@@ -804,6 +823,7 @@ engine_start(engine_type* engine)
     cmdhandler_stop(engine->cmdhandler);
     engine_stop_xfrhandler(engine);
     engine_stop_dnshandler(engine);
+    engine_stop_httpd(engine);
 
     if (engine && engine->config) {
         if (engine->config->pid_filename) {

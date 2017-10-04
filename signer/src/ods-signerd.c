@@ -218,6 +218,7 @@ static void *
 signal_handler(sig_atomic_t sig)
 {
     switch (sig) {
+        /* TODO add handler for SIGPIPE as per libmicrohttpd doc */
         case SIGHUP:
             if (engine) {
                 engine->need_to_reload = 1;

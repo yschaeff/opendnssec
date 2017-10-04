@@ -174,6 +174,7 @@ AC_ARG_ENABLE(signer,
 		[enable_signer="${enableval}"],
 		[enable_signer="yes"])
 AM_CONDITIONAL([ENABLE_SIGNER], [test "${enable_signer}" = "yes"])
+ACX_LIBMICROHTTPD
 
 INSTALLATIONCOND=""
 AC_ARG_ENABLE(installation-user,

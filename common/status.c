@@ -45,6 +45,7 @@ ods_lookup_table ods_status_str[] = {
     { ODS_STATUS_CHROOT_ERR, "Change root failed"},
     { ODS_STATUS_CMDHANDLER_ERR, "Command handler error"},
     { ODS_STATUS_XFRHANDLER_ERR, "XFR handler error"},
+    { ODS_STATUS_HTTPD_ERR, "HTTPD handler error"},
     { ODS_STATUS_CONFLICT_ERR, "Conflict detected"},
     { ODS_STATUS_ERR, "General error"},
     { ODS_STATUS_FOPEN_ERR, "Unable to open file"},
