@@ -446,9 +446,9 @@ parse_conf_http_listener(const char* cfgfile)
         }
     }
     else {
-        interface = http_listener_push(listener, (char *)"", AF_INET, "15355", user, pass);
+        interface = http_listener_push(listener, (char *)"", AF_INET, "15355", (char *)"", (char *)"");
         if (interface) {
-            interface = http_listener_push(listener, (char *)"", AF_INET6, "15355", user, pass);
+            interface = http_listener_push(listener, (char *)"", AF_INET6, "15355", (char *)"", (char *)"");
         }
     }
     xmlXPathFreeObject(xpathObj);
