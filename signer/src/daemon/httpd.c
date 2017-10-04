@@ -59,6 +59,22 @@ handle_connection (void *cls, struct MHD_Connection *connection,
   return ret;
 }
 
+static void
+handle_connection_done(void *cls, struct MHD_Connection *connection,
+    void **con_cls, enum MHD_RequestTerminationCode toe)
+{
+    printf("completed connection with code %d\n", toe);
+}
+
+static void
+handle_connection_start(void *cls, struct MHD_Connection *connection,
+    void **socket_context, enum MHD_ConnectionNotificationCode toe)
+{
+    if (toe == MHD_CONNECTION_NOTIFY_STARTED)
+        printf("started connection\n");
+    else
+        printf("stopped connection\n");
+}
 
 struct httpd *
 httpd_create(engineconfig_type *config)
@@ -74,6 +90,8 @@ httpd_start(struct httpd *httpd)
 {
     struct MHD_OptionItem ops[] = {
         { MHD_OPTION_THREAD_POOL_SIZE, FAST_UPDATE_POOL_SIZE, NULL },
+        { MHD_OPTION_NOTIFY_COMPLETED, (uintptr_t)handle_connection_done, NULL },
+        { MHD_OPTION_NOTIFY_CONNECTION, (uintptr_t)handle_connection_start, NULL },
         /*{ MHD_OPTION_CONNECTION_LIMIT, 100, NULL },*/
         /*{ MHD_OPTION_CONNECTION_TIMEOUT, 10, NULL },*/
         { MHD_OPTION_END, 0, NULL }
