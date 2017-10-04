@@ -40,6 +40,8 @@
 #include "daemon/httpd.h"
 
 #define PORT 8888
+#define FAST_UPDATE_POOL_SIZE 10
+
 static int
 handle_connection (void *cls, struct MHD_Connection *connection,
     const char *url,
@@ -70,8 +72,17 @@ httpd_create(engineconfig_type *config)
 void
 httpd_start(struct httpd *httpd)
 {
-    httpd->daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, PORT, NULL, NULL,
-        &handle_connection, NULL, MHD_OPTION_END);
+    struct MHD_OptionItem ops[] = {
+        { MHD_OPTION_THREAD_POOL_SIZE, FAST_UPDATE_POOL_SIZE, NULL },
+        /*{ MHD_OPTION_CONNECTION_LIMIT, 100, NULL },*/
+        /*{ MHD_OPTION_CONNECTION_TIMEOUT, 10, NULL },*/
+        { MHD_OPTION_END, 0, NULL }
+    };
+    httpd->daemon = MHD_start_daemon(
+        MHD_USE_DUAL_STACK | MHD_USE_SELECT_INTERNALLY,
+        PORT, NULL, NULL,
+        &handle_connection, NULL,
+        MHD_OPTION_ARRAY, ops, MHD_OPTION_END);
 }
 
 void
