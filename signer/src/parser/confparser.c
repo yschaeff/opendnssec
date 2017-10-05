@@ -402,7 +402,7 @@ parse_conf_http_listener(const char* cfgfile)
     if (xpathObj->nodesetval && xpathObj->nodesetval->nodeNr > 0) {
         for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
             address = NULL;
-            port = strdup("15355");
+            port = strdup("15356");
             user = NULL;
             pass = NULL;
 
@@ -446,9 +446,9 @@ parse_conf_http_listener(const char* cfgfile)
         }
     }
     else {
-        interface = http_listener_push(listener, (char *)"", AF_INET, "15355", (char *)"", (char *)"");
+        interface = http_listener_push(listener, (char *)"", AF_INET, "15356", (char *)"", (char *)"");
         if (interface) {
-            interface = http_listener_push(listener, (char *)"", AF_INET6, "15355", (char *)"", (char *)"");
+            interface = http_listener_push(listener, (char *)"", AF_INET6, "15356", (char *)"", (char *)"");
         }
     }
     xmlXPathFreeObject(xpathObj);

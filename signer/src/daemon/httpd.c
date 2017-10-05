@@ -84,30 +84,29 @@ httpd_create(engineconfig_type *config)
     httpd->if_count = config->http_interfaces->count;
     CHECKALLOC(httpd->ifs = (struct sockaddr *) malloc(httpd->if_count *
         sizeof(struct sockaddr)));
-    /*for (int i = 0; i < httpd->if_count; i++) {*/
-        /*struct sockaddr *inf = httpd->ifs + i;*/
-        /*struct http_interface_struct *cif = config->http_interfaces->interfaces + i;*/
+    for (int i = 0; i < httpd->if_count; i++) {
+        struct sockaddr *inf = httpd->ifs + i;
+        struct http_interface_struct *cif = config->http_interfaces->interfaces + i;
 
-        /*if (cif->family == AF_INET6) {*/
-            /*struct sockaddr_in6 *inf6 = (struct sockaddr_in6 *)inf;*/
-            /*inf6->sin6_family = AF_INET6;*/
-            /*if (inet_pton(AF_INET6, cif->address, &inf6->sin6_addr) != 1) {*/
-                /*//*/
-                /*return NULL;*/
-            /*}*/
-            /*[>inf6->sin6_port = atoi(cif->port);<]*/
-            /*[>inf6->sin6_port = PORT;<]*/
-        /*} else {*/
-            /*struct sockaddr_in *inf4 = (struct sockaddr_in *)inf;*/
-            /*inf4->sin_family = AF_INET;*/
-            /*if (inet_pton(AF_INET, cif->address, &inf4->sin_addr) != 1) {*/
-                /*//*/
-                /*return NULL;*/
-            /*}*/
-            /*[>inf4->sin_port = atoi(cif->port);<]*/
-            /*[>inf4->sin_port = PORT;<]*/
-        /*}*/
-    /*}*/
+        /*cif->port = "1515";*/
+        if (cif->family == AF_INET6) {
+            struct sockaddr_in6 *inf6 = (struct sockaddr_in6 *)inf;
+            inf6->sin6_family = AF_INET6;
+            const char *addr = cif->address[0]? cif->address : "::0";
+            if (inet_pton(AF_INET6, addr, &inf6->sin6_addr.s6_addr) != 1) {
+                return NULL;
+            }
+            inf6->sin6_port = atoi(cif->port);
+        } else {
+            struct sockaddr_in *inf4 = (struct sockaddr_in *)inf;
+            inf4->sin_family = AF_INET;
+            const char *addr = cif->address[0]? cif->address : "0.0.0.0";
+            if (inet_pton(AF_INET, addr, &inf4->sin_addr.s_addr) != 1) {
+                return NULL;
+            }
+            inf4->sin_port = atoi(cif->port);
+        }
+    }
 
     return httpd;
 }
@@ -120,7 +119,7 @@ httpd_start(struct httpd *httpd)
         { MHD_OPTION_NOTIFY_COMPLETED, (intptr_t)handle_connection_done, NULL },
         { MHD_OPTION_NOTIFY_CONNECTION, (intptr_t)handle_connection_start, NULL },
         /* TODO this only add first interface, can it even support multiple? */
-        /*{ MHD_OPTION_SOCK_ADDR, (uintptr_t)httpd->ifs, NULL},*/
+        { MHD_OPTION_SOCK_ADDR, (uintptr_t)httpd->ifs, NULL},
         /*{ MHD_OPTION_CONNECTION_LIMIT, 100, NULL },*/
         /*{ MHD_OPTION_CONNECTION_TIMEOUT, 10, NULL },*/
         { MHD_OPTION_END, 0, NULL }
