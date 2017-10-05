@@ -202,13 +202,16 @@ main(int argc, char* argv[])
        (status = engine_setup_signals(engine)) != ODS_STATUS_OK ||
        (status = engine_setup_workstart(engine)) != ODS_STATUS_OK ||
        (status = engine_setup_netwstart(engine)) != ODS_STATUS_OK ||
-       (status = engine_setup_finish(engine, linkfd)) != ODS_STATUS_OK) {
+       (status = engine_setup_finish(engine, linkfd)) != ODS_STATUS_OK)
+    {
         ods_log_error("Unable to start signer daemon: %s", ods_status2str(status));
+        returncode = status;
+    } else {
+        returncode = engine_start(engine);
+        engine_cleanup(engine);
+        engine = NULL;
+        program_teardown();
     }
-    returncode = engine_start(engine);
-    engine_cleanup(engine);
-    engine = NULL;
-    program_teardown();
 
     free(argv0);
     return returncode;
