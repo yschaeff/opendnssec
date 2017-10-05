@@ -27,6 +27,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "wire/rpc.h"
 
@@ -34,7 +35,13 @@ struct rpc *
 rpc_decode_json(const char *url, const char *buf, size_t buflen)
 {
     struct rpc *rpc = malloc(sizeof(struct rpc));
-    //xxx
+
+    /* DEBUG */
+    char *t = strndup(buf, buflen);
+    printf("RX MSG: '%s'\n", t);
+    free(t);
+    /* DEBUG */
+
     return rpc;
 }
 
