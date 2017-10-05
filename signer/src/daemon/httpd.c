@@ -42,19 +42,89 @@
 #define PORT 8888
 #define FAST_UPDATE_POOL_SIZE 10
 
+struct connection_info {
+    size_t buflen;
+    char *buf;
+    engine_type *engine;
+};
+
 static int
-handle_connection (void *cls, struct MHD_Connection *connection,
+print_headers(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+    printf("\tHEADER: %s: %s\n", key, value);
+    return MHD_YES;
+}
+
+static int
+handle_content(engine_type *engine, const char *url, const char *buf, size_t buflen,
+    struct MHD_Response **response, int *http_code)
+{
+    /* DECODE (url, buf) HERE */
+
+    printf("rx %ld bytes data\n", buflen);
+    char *body  = strdup("Poser\n");
+    
+    /* PROCESS DB STUFF HERE */
+
+    /* ENCODE (...) HERE */
+
+    *response = MHD_create_response_from_buffer(strlen(body),
+        (void*) body, MHD_RESPMEM_MUST_FREE);
+    *http_code = MHD_HTTP_OK;
+    return !(*response);
+}
+
+static int
+handle_connection(void *cls, struct MHD_Connection *connection,
     const char *url,
     const char *method, const char *version,
     const char *upload_data,
     size_t *upload_data_size, void **con_cls)
 {
-  const char *page  = "<html><body>Hello, browser!</body></html>";
-  struct MHD_Response *response;
-  int ret;
-  response = MHD_create_response_from_buffer(strlen(page),
-                                            (void*) page, MHD_RESPMEM_PERSISTENT);
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+    printf("%s - %s - %s - %ld\n", url, method, version, *upload_data_size);
+    if(!*con_cls) {
+        struct connection_info *con_info = malloc(sizeof(struct connection_info));
+        if (!con_info) return MHD_NO;
+        *con_cls = (void *)con_info;
+        con_info->buf = malloc(*upload_data_size);
+        memcpy(con_info->buf, upload_data, *upload_data_size);
+        con_info->buflen = *upload_data_size;
+        *upload_data_size = 0;
+        return MHD_YES;
+    }
+
+    struct connection_info *con_info = (struct connection_info *)*con_cls;
+    if (*upload_data_size) {
+        con_info->buf = realloc(con_info->buf, con_info->buflen + *upload_data_size);
+        memcpy(con_info->buf + con_info->buflen, upload_data, *upload_data_size);
+        con_info->buflen += *upload_data_size;
+        *upload_data_size = 0;
+        return MHD_YES;
+    }
+
+    /* We are done with downloading data */
+
+    MHD_get_connection_values(connection, MHD_HEADER_KIND, &print_headers, NULL);
+    struct MHD_Response *response = NULL;
+    int http_status_code = MHD_HTTP_OK;
+    if (!strcmp(method, "POST")) {
+        if (handle_content((engine_type *)cls, url, con_info->buf,
+                con_info->buflen, &response, &http_status_code)) {
+            const char *body  = "some error?\n";
+            response = MHD_create_response_from_buffer(strlen(body),
+                (void*) body, MHD_RESPMEM_PERSISTENT);
+        }
+    } else if (!strcmp(method, "GET")) {
+        char *body  = strdup("I don't GET it\n");
+        response = MHD_create_response_from_buffer(strlen(body),
+            (void*) body, MHD_RESPMEM_MUST_FREE);
+    } else {
+        const char *body  = "Who are you?\n";
+        response = MHD_create_response_from_buffer(strlen(body),
+            (void*) body, MHD_RESPMEM_PERSISTENT);
+        http_status_code = MHD_HTTP_BAD_REQUEST;
+    }
+  int ret = MHD_queue_response(connection, http_status_code, response);
   MHD_destroy_response(response);
   return ret;
 }
@@ -64,6 +134,13 @@ handle_connection_done(void *cls, struct MHD_Connection *connection,
     void **con_cls, enum MHD_RequestTerminationCode toe)
 {
     printf("completed connection with code %d\n", toe);
+
+    struct connection_info *con_info = *con_cls;
+    if (con_info) {
+        free(con_info->buf);
+    }
+    free(con_info);
+    *con_cls = NULL;
 }
 
 static void
@@ -125,7 +202,7 @@ httpd_start(struct httpd *httpd)
     httpd->daemon = MHD_start_daemon(
         MHD_USE_DUAL_STACK | MHD_USE_SELECT_INTERNALLY,
         PORT, NULL, NULL,
-        &handle_connection, NULL,
+        &handle_connection, httpd->engine,
         MHD_OPTION_ARRAY, ops, MHD_OPTION_END);
 }
 
