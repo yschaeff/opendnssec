@@ -82,10 +82,9 @@ httpd_create(engineconfig_type *config)
     struct httpd *httpd;
     CHECKALLOC(httpd = (struct httpd *) malloc(sizeof(struct httpd)));
     httpd->if_count = config->http_interfaces->count;
-    CHECKALLOC(httpd->ifs = (struct sockaddr *) malloc(httpd->if_count *
-        sizeof(struct sockaddr)));
+    CHECKALLOC(httpd->ifs = (struct sockaddr *) malloc(httpd->if_count * sizeof(struct sockaddr)));
     for (int i = 0; i < httpd->if_count; i++) {
-        struct sockaddr *inf = httpd->ifs + i;
+        struct sockaddr *inf = &(httpd->ifs[i]);
         struct http_interface_struct *cif = config->http_interfaces->interfaces + i;
 
         /*cif->port = "1515";*/
@@ -93,7 +92,7 @@ httpd_create(engineconfig_type *config)
             struct sockaddr_in6 *inf6 = (struct sockaddr_in6 *)inf;
             inf6->sin6_family = AF_INET6;
             const char *addr = cif->address[0]? cif->address : "::0";
-            if (inet_pton(AF_INET6, addr, &inf6->sin6_addr.s6_addr) != 1) {
+            if (inet_pton(AF_INET6, addr, &(inf6->sin6_addr)) != 1) {
                 return NULL;
             }
             inf6->sin6_port = atoi(cif->port);
@@ -101,7 +100,7 @@ httpd_create(engineconfig_type *config)
             struct sockaddr_in *inf4 = (struct sockaddr_in *)inf;
             inf4->sin_family = AF_INET;
             const char *addr = cif->address[0]? cif->address : "0.0.0.0";
-            if (inet_pton(AF_INET, addr, &inf4->sin_addr.s_addr) != 1) {
+            if (inet_pton(AF_INET, addr, &(inf4->sin_addr)) != 1) {
                 return NULL;
             }
             inf4->sin_port = atoi(cif->port);
