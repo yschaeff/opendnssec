@@ -41,6 +41,7 @@ struct httpd {
 };
 
 struct httpd * httpd_create(engineconfig_type *config);
+void httpd_cleanup(struct httpd *httpd);
 
 void httpd_start(struct httpd *httpd);
 

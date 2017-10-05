@@ -202,6 +202,13 @@ httpd_create(engineconfig_type *config)
 }
 
 void
+httpd_cleanup(struct httpd *httpd)
+{
+    free(httpd->ifs);
+    free(httpd);
+}
+
+void
 httpd_start(struct httpd *httpd)
 {
     struct MHD_OptionItem ops[] = {

@@ -865,6 +865,7 @@ engine_cleanup(engine_type* engine)
         cmdhandler_cleanup(engine->cmdhandler);
         dnshandler_cleanup(engine->dnshandler);
         xfrhandler_cleanup(engine->xfrhandler);
+        httpd_cleanup(engine->httpd);
         engine_config_cleanup(engine->config);
         pthread_mutex_destroy(&engine->signal_lock);
         pthread_cond_destroy(&engine->signal_cond);

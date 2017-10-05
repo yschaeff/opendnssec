@@ -42,7 +42,7 @@ int
 rpc_encode_json(struct rpc *rpc, char **buf, size_t *buflen)
 {
     (void)rpc;
-    const char *mockup = "{dummy-data: xxx}";
+    const char *mockup = "{dummy-data: xxx}\n";
     *buf = strdup(mockup);
     *buflen = strlen(mockup);
     return 0;
