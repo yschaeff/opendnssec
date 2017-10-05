@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <jansson.h>
 
 #include "wire/rpc.h"
 
@@ -35,12 +36,22 @@ struct rpc *
 rpc_decode_json(const char *url, const char *buf, size_t buflen)
 {
     struct rpc *rpc = malloc(sizeof(struct rpc));
+    json_error_t error;
+
+    json_t *root = json_loads(buf, 0, &error);
+    if (root) {
+        json_t *jsonData = json_object_get(root, buf);
+        if(json_is_array(jsonData)) {
+            /* Do something */
+        }
+    }
 
     /* DEBUG */
     char *t = strndup(buf, buflen);
     printf("RX MSG: '%s'\n", t);
     free(t);
     /* DEBUG */
+    //json_decref(root);
 
     return rpc;
 }
@@ -52,6 +63,13 @@ rpc_encode_json(struct rpc *rpc, char **buf, size_t *buflen)
     const char *mockup = "{dummy-data: xxx}\n";
     *buf = strdup(mockup);
     *buflen = strlen(mockup);
+    json_t *root = json_object();
+    json_object_set_new(root, "key1", json_string("value1"));
+    json_t *arr = json_array();
+    json_array_append(arr, json_string("value2"));
+
+    *buf = json_dumps(root, 0);
+    json_decref(root);
     return 0;
 }
 
