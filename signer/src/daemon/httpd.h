@@ -37,7 +37,7 @@ struct httpd {
     engine_type* engine;
     struct MHD_Daemon *daemon;
     int if_count;
-    struct sockaddr *ifs;
+    struct sockaddr_storage *ifs;
 };
 
 struct httpd * httpd_create(engineconfig_type *config);

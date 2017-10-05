@@ -125,7 +125,7 @@ listener_push(listener_type* listener, char* address, int family, const char* po
 http_interface_type*
 http_listener_push(http_listener_type* listener, char* address, int family, const char* port, char* user, char* pass)
 {
-    interface_type* ifs_old = NULL;
+    http_interface_type* ifs_old = NULL;
     ods_log_assert(listener);
     ods_log_assert(address);
     ifs_old = listener->interfaces;
@@ -139,7 +139,7 @@ http_listener_push(http_listener_type* listener, char* address, int family, cons
     listener->interfaces[listener->count -1].address = strdup(address);
     listener->interfaces[listener->count -1].family = family;
     listener->interfaces[listener->count -1].user = strdup(user);
-    listener->interfaces[listener->count -1].address = strdup(pass);
+    listener->interfaces[listener->count -1].pass = strdup(pass);
 
     if (port) {
         listener->interfaces[listener->count -1].port = strdup(port);
