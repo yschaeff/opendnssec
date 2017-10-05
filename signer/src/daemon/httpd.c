@@ -37,10 +37,11 @@
 #include <microhttpd.h>
 
 #include "daemon/engine.h"
+#include "wire/rpc.h"
 #include "daemon/httpd.h"
 
 #define PORT 8888
-#define FAST_UPDATE_POOL_SIZE 10
+#define HTTPD_POOL_SIZE 10
 
 struct connection_info {
     size_t buflen;
@@ -59,17 +60,31 @@ static int
 handle_content(engine_type *engine, const char *url, const char *buf, size_t buflen,
     struct MHD_Response **response, int *http_code)
 {
-    /* DECODE (url, buf) HERE */
-
     printf("rx %ld bytes data\n", buflen);
-    char *body  = strdup("Poser\n");
-    
+
+    /* DECODE (url, buf) HERE */
+    struct rpc *rpc = rpc_decode_json(url, buf, buflen);
+    if (!rpc) {
+        char *body = strdup("Can't parse\n");
+        *response = MHD_create_response_from_buffer(strlen(body),
+            (void*) body, MHD_RESPMEM_MUST_FREE);
+        *http_code = MHD_HTTP_BAD_REQUEST;
+        return 0;
+    }
+
     /* PROCESS DB STUFF HERE */
+    struct rpc *rpc_response = NULL; // = DB(rpc)
 
     /* ENCODE (...) HERE */
+    char *answer;
+    size_t answer_len;
+    int ret = rpc_encode_json(rpc_response, &answer, &answer_len);
+    rpc_destroy(rpc);
+    rpc_destroy(rpc_response);
+    if (ret) return 1;
 
-    *response = MHD_create_response_from_buffer(strlen(body),
-        (void*) body, MHD_RESPMEM_MUST_FREE);
+    *response = MHD_create_response_from_buffer(answer_len,
+        (void*)answer, MHD_RESPMEM_MUST_FREE);
     *http_code = MHD_HTTP_OK;
     return !(*response);
 }
@@ -109,8 +124,9 @@ handle_connection(void *cls, struct MHD_Connection *connection,
     int http_status_code = MHD_HTTP_OK;
     if (!strcmp(method, "POST")) {
         if (handle_content((engine_type *)cls, url, con_info->buf,
-                con_info->buflen, &response, &http_status_code)) {
-            const char *body  = "some error?\n";
+            con_info->buflen, &response, &http_status_code))
+        {
+            const char *body = "some error?\n";
             response = MHD_create_response_from_buffer(strlen(body),
                 (void*) body, MHD_RESPMEM_PERSISTENT);
         }
@@ -119,7 +135,7 @@ handle_connection(void *cls, struct MHD_Connection *connection,
         response = MHD_create_response_from_buffer(strlen(body),
             (void*) body, MHD_RESPMEM_MUST_FREE);
     } else {
-        const char *body  = "Who are you?\n";
+        const char *body = "Who are you?\n";
         response = MHD_create_response_from_buffer(strlen(body),
             (void*) body, MHD_RESPMEM_PERSISTENT);
         http_status_code = MHD_HTTP_BAD_REQUEST;
@@ -189,7 +205,7 @@ void
 httpd_start(struct httpd *httpd)
 {
     struct MHD_OptionItem ops[] = {
-        { MHD_OPTION_THREAD_POOL_SIZE, FAST_UPDATE_POOL_SIZE, NULL },
+        { MHD_OPTION_THREAD_POOL_SIZE, HTTPD_POOL_SIZE, NULL },
         { MHD_OPTION_NOTIFY_COMPLETED, (intptr_t)handle_connection_done, NULL },
         { MHD_OPTION_NOTIFY_CONNECTION, (intptr_t)handle_connection_start, NULL },
         /* TODO this only add first interface, can it even support multiple? */
