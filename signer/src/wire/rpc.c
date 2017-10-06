@@ -40,7 +40,6 @@ struct rpc *
 rpc_decode_json(const char *url, const char *buf, size_t buflen)
 {
     /*printf("incoming data: \"%s\"\n", buf);//not null terminated!*/
-    /* TOD use url*/
 
     json_error_t error;
     json_t *root = json_loadb(buf, buflen, 0, &error);
@@ -141,17 +140,35 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         return NULL;
     }
 
+    char *ptr = NULL;
+    char *tok_url = strdup(url);
+    char *opc = strtok_r(tok_url, "/", &ptr);
+    char *delegation_point = strtok_r(NULL, "/", &ptr);
+    if(!opc || !delegation_point) {
+        printf("url is funky\n");
+        free(tok_url);
+        return NULL;
+    }
+
     struct rpc *rpc = malloc(sizeof(struct rpc));
     if (!rpc) {
         json_decref(root);
         return NULL;
     }
-    rpc->opc = RPC_REPLACE;
-    rpc->resource_locator = strdup(json_string_value(obj_owner));
+    if (!strcmp(opc, "replace")) {
+        rpc->opc = RPC_REPLACE;
+    } else {
+        printf("unknown RPC\n");
+        free(rpc);
+        free(tok_url);
+        return NULL;
+    }
+    rpc->resource_locator = strdup(delegation_point);
     rpc->rr_count = rr_count;
     rpc->rr = rr;
     rpc->status = RPC_OK;
 
+    free(tok_url);
     json_decref(root); /* done with the JSON part */
     return rpc;
 }
@@ -159,22 +176,10 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
 int
 rpc_encode_json(struct rpc *rpc, char **buf, size_t *buflen)
 {
-    /* generate internal server error */
-    /*rpc->status = RPC_ERR;*/
-    /**buf = NULL;*/
-    /**buflen = 0;*/
-    /*return 0;*/
-
-    json_t *root = json_object();
-    json_object_set_new(root, "key1", json_string("value1"));
-    json_t *arr = json_array();
-    json_array_append(arr, json_string("value2"));
-
+    /* Sent empty response */
     rpc->status = RPC_OK;
-
-    *buf = json_dumps(root, 0);
-    *buflen = strlen(*buf);
-    json_decref(root);
+    *buf = NULL;
+    *buflen = 0;
     return 0;
 }
 
