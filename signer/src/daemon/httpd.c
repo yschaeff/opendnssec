@@ -73,19 +73,24 @@ handle_content(engine_type *engine, const char *url, const char *buf, size_t buf
     }
 
     /* PROCESS DB STUFF HERE */
-    struct rpc *rpc_response = NULL; // = DB(rpc)
+    /*struct rpc *rpc_response = NULL; // = DB(rpc)*/
 
     /* ENCODE (...) HERE */
     char *answer;
     size_t answer_len;
-    int ret = rpc_encode_json(rpc_response, &answer, &answer_len);
-    rpc_destroy(rpc);
-    rpc_destroy(rpc_response);
-    if (ret) return 1;
+    int ret = rpc_encode_json(rpc, &answer, &answer_len);
+    if (ret) {
+        rpc_destroy(rpc);
+        return 1;
+    }
 
     *response = MHD_create_response_from_buffer(answer_len,
         (void*)answer, MHD_RESPMEM_MUST_FREE);
-    *http_code = MHD_HTTP_OK;
+    if (rpc->status == RPC_OK)
+        *http_code = MHD_HTTP_OK;
+    else
+        *http_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+    rpc_destroy(rpc);
     return !(*response);
 }
 

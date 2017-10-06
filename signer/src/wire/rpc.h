@@ -29,9 +29,23 @@
 
 #include "config.h"
 #include <sys/types.h>
+#include <ldns/ldns.h>
+
+enum rpc_opcode {
+    RPC_REPLACE    /* Remove all records with the same owner name and insert new. */
+};
+
+enum rpc_status {
+    RPC_OK,
+    RPC_ERR
+};
 
 struct rpc {
-    int xxx;
+    enum rpc_opcode opc;//insert, delete, update
+    char *resource_locator; //Owner name
+    int rr_count;
+    ldns_rr **rr; /* array of resource records  */
+    enum rpc_status status;//ack/nak
 };
 
 struct rpc * rpc_decode_json(const char *url, const char *buf, size_t buflen);
