@@ -36,6 +36,9 @@
 /* In theory we need 2*64k + some! */
 #define RR_BUFLEN 65536
 
+/* sample data */
+/*curl --data '{"meta": {"zone": "zone.co.uk"}, "data": [{"owner": "zone.co.uk", "type": "A", "ttl": "600", "rdata": "1.1.1.1", "class": "IN"}]}' localhost:8888/replace/co.uk/zone.co.uk*/
+
 struct rpc *
 rpc_decode_json(const char *url, const char *buf, size_t buflen)
 {
@@ -53,18 +56,18 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         return NULL;
     }
 
-    json_t *obj_meta = json_object_get(root, "meta");
-    if (!obj_meta || !json_is_object(obj_meta)) {
-        printf("meta dict not found.\n");
-        json_decref(root);
-        return NULL;
-    }
-    json_t *obj_owner = json_object_get(obj_meta, "owner");
-    if (!obj_owner || !json_is_string(obj_owner)) {
-        printf("owner string not found.\n");
-        json_decref(root);
-        return NULL;
-    }
+    /*json_t *obj_meta = json_object_get(root, "meta");*/
+    /*if (!obj_meta || !json_is_object(obj_meta)) {*/
+        /*printf("meta dict not found.\n");*/
+        /*json_decref(root);*/
+        /*return NULL;*/
+    /*}*/
+    /*json_t *obj_zone = json_object_get(obj_meta, "zone");*/
+    /*if (!obj_zone || !json_is_string(obj_zone)) {*/
+        /*printf("zone string not found.\n");*/
+        /*json_decref(root);*/
+        /*return NULL;*/
+    /*}*/
 
     json_t *obj_data = json_object_get(root, "data");
     if (!obj_data || !json_is_array(obj_data)) {
@@ -143,6 +146,7 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
     char *ptr = NULL;
     char *tok_url = strdup(url);
     char *opc = strtok_r(tok_url, "/", &ptr);
+    char *zone = strtok_r(NULL, "/", &ptr);
     char *delegation_point = strtok_r(NULL, "/", &ptr);
     if(!opc || !delegation_point) {
         printf("url is funky\n");
@@ -163,7 +167,8 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         free(tok_url);
         return NULL;
     }
-    rpc->resource_locator = strdup(delegation_point);
+    rpc->zone = strdup(zone);
+    rpc->delegation_point = strdup(delegation_point);
     rpc->rr_count = rr_count;
     rpc->rr = rr;
     rpc->status = RPC_OK;
@@ -177,7 +182,6 @@ int
 rpc_encode_json(struct rpc *rpc, char **buf, size_t *buflen)
 {
     /* Sent empty response */
-    rpc->status = RPC_OK;
     *buf = NULL;
     *buflen = 0;
     return 0;
@@ -187,12 +191,12 @@ void
 rpc_destroy(struct rpc *rpc)
 {
     if (!rpc) return;
-    free(rpc->resource_locator);
+    free(rpc->zone);
+    free(rpc->delegation_point);
     for (size_t i = 0; i < rpc->rr_count; i++) {
         ldns_rr_free(rpc->rr[i]);
     }
     free(rpc->rr);
     free(rpc);
-    
 }
 

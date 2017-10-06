@@ -38,6 +38,7 @@
 
 #include "daemon/engine.h"
 #include "wire/rpc.h"
+#include "signer/rpc-proc.h"
 #include "daemon/httpd.h"
 
 #define PORT 8888
@@ -73,13 +74,18 @@ handle_content(engine_type *engine, const char *url, const char *buf, size_t buf
     }
 
     /* PROCESS DB STUFF HERE */
-    /*struct rpc *rpc_response = NULL; // = DB(rpc)*/
+    int ret = rpcproc_apply(engine, rpc);
+    if (ret) {
+
+    }
 
     /* ENCODE (...) HERE */
     char *answer;
     size_t answer_len;
-    int ret = rpc_encode_json(rpc, &answer, &answer_len);
+    ret = rpc_encode_json(rpc, &answer, &answer_len);
     if (ret) {
+        /* If we can't formulate a respone just hang up. */
+        /* A negative response should still have ret==0  */
         rpc_destroy(rpc);
         return 1;
     }
@@ -88,6 +94,8 @@ handle_content(engine_type *engine, const char *url, const char *buf, size_t buf
         (void*)answer, MHD_RESPMEM_MUST_FREE);
     if (rpc->status == RPC_OK)
         *http_code = MHD_HTTP_OK;
+    else if (rpc->status == RPC_RESOURCE_NOT_FOUND)
+        *http_code = MHD_HTTP_NOT_FOUND;
     else
         *http_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     rpc_destroy(rpc);

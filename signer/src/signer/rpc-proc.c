@@ -24,34 +24,31 @@
  *
  */
 
-#ifndef RPC_H
-#define RPC_H
-
 #include "config.h"
-#include <sys/types.h>
-#include <ldns/ldns.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-enum rpc_opcode {
-    RPC_REPLACE    /* Remove all records with the same owner name and insert new. */
-};
+#include "wire/rpc.h"
+#include "daemon/engine.h"
 
-enum rpc_status {
-    RPC_OK,
-    RPC_ERR,
-    RPC_RESOURCE_NOT_FOUND
-};
+#include "signer/rpc-proc.h"
 
-struct rpc {
-    enum rpc_opcode opc;//insert, delete, update
-    char *zone; /* Zone to operate on */
-    char *delegation_point;
-    int rr_count;
-    ldns_rr **rr; /* array of resource records  */
-    enum rpc_status status;//ack/nak
-};
+int
+rpcproc_apply(engine_type *engine, struct rpc *rpc)
+{
+    if (rpc->opc != RPC_REPLACE) {
+        rpc->status = RPC_ERR;
+        return 0;
+    }
 
-struct rpc * rpc_decode_json(const char *url, const char *buf, size_t buflen);
-int rpc_encode_json(struct rpc *rpc, char **buf, size_t *buflen);
-void rpc_destroy(struct rpc *rpc);
+    zone_type *zone = zonelist_lookup_zone_by_name(engine->zonelist, rpc->zone,
+        LDNS_RR_CLASS_IN);
+    if (!zone) {
+        rpc->status = RPC_RESOURCE_NOT_FOUND;
+        return 0;
+    }
 
-#endif /* RPC_H */
+    rpc->status = RPC_OK;
+    return 0;
+}

@@ -154,7 +154,7 @@ zonelist_lookup_zone_by_name(zonelist_type* zonelist, const char* name,
 {
     zone_type* zone = NULL;
     zone_type* result = NULL;
-    if (zonelist && zonelist->zones && name  && klass) {
+    if (zonelist && zonelist->zones && name && klass) {
         zone = zone_create((char*) name, klass);
         result = zonelist_lookup_zone(zonelist, zone);
         zone_cleanup(zone);
