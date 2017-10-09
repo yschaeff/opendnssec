@@ -34,14 +34,26 @@
 
 #include "signer/rpc-proc.h"
 
-int
-rpcproc_apply(engine_type *engine, struct rpc *rpc)
+static int
+delete(names_view_type view, const char *delegation_point)
 {
-    if (rpc->opc != RPC_REPLACE) {
-        rpc->status = RPC_ERR;
-        return 0;
+    ldns_rdf *dp_name = ldns_rdf_new_frm_str(LDNS_RDF_TYPE_DNAME, delegation_point);
+    if (!dp_name) return 1;
+    names_iterator dp_iter;
+    /* TODO: this crashes, view->dbase thing not initialized properly?  */
+    (void)names_allbelow(view, &dp_iter, dp_name); /* Return not specified. */
+    ldns_rdf_free(dp_name);
+    domain_type currentrecord;
+    for(; names_iterate(&dp_iter, &currentrecord); names_advance(&dp_iter, NULL)) {
+       names_delete(&dp_iter);
     }
+    return 0;
+}
 
+static int
+replace(engine_type *engine, struct rpc *rpc)
+{
+    /* TODO this ASSUMES IN. We should add that to URL as well */
     zone_type *zone = zonelist_lookup_zone_by_name(engine->zonelist, rpc->zone,
         LDNS_RR_CLASS_IN);
     if (!zone) {
@@ -49,6 +61,60 @@ rpcproc_apply(engine_type *engine, struct rpc *rpc)
         return 0;
     }
 
+    names_view_type view;
+    (void)names_view(zone->namedb, &view); /* Return not specified. */
+
+    /* DELETE everything below delegation point, inclusive */
+    if (delete(view, rpc->delegation_point)) {
+        rpc->status = RPC_ERR;
+        return 0;
+    }
+
+    /* Now INSERT all rr's from rpc */
+    for (size_t i = 0; i < rpc->rr_count; i++) {
+        ldns_rr *rr = ldns_rr_clone(rpc->rr[i]);
+        if (!rr) {
+            names_rollback(view);
+            rpc->status = RPC_ERR;
+            return 0;
+        }
+        ldns_rdf *owner = ldns_rr_owner(rr);
+        ldns_rr_type type = ldns_rr_get_type(rr);
+        /* This shouldn't be in the database anymore so we get a new object */
+        domain_type *domain = names_lookupname(view, owner);
+        if (!domain) {
+            names_rollback(view);
+            rpc->status = RPC_ERR;
+            return 0;
+        }
+
+        rrset_type *rrset = domain_lookup_rrset(domain, type);
+        if (!rrset) {
+            rrset = rrset_create(zone, type);
+            if (!rrset) {
+                names_rollback(view);
+                rpc->status = RPC_ERR;
+                return 0;
+            }
+            rrset->next = domain->rrsets;
+            domain->rrsets = rrset;
+        }
+        (void)rrset_add_rr(rrset, rr);
+    }
+    names_commit(view);
+
     rpc->status = RPC_OK;
     return 0;
+}
+
+int
+rpcproc_apply(engine_type *engine, struct rpc *rpc)
+{
+    switch (rpc->opc) {
+        case RPC_REPLACE:
+            return replace(engine, rpc);
+        default:
+            rpc->status = RPC_ERR;
+            return 0;
+    }
 }

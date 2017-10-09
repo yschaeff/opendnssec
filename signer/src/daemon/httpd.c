@@ -76,7 +76,8 @@ handle_content(engine_type *engine, const char *url, const char *buf, size_t buf
     /* PROCESS DB STUFF HERE */
     int ret = rpcproc_apply(engine, rpc);
     if (ret) {
-
+        /* Failed to apply to database, status is set by rpcproc_apply */
+        /* PASS */
     }
 
     /* ENCODE (...) HERE */

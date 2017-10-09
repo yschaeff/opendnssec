@@ -44,7 +44,7 @@ enum rpc_status {
 struct rpc {
     enum rpc_opcode opc;//insert, delete, update
     char *zone; /* Zone to operate on */
-    char *delegation_point;
+    char *delegation_point; /* Delete everything below */
     int rr_count;
     ldns_rr **rr; /* array of resource records  */
     enum rpc_status status;//ack/nak

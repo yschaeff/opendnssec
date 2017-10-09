@@ -308,6 +308,13 @@ names_reversedenials(names_view_type view, names_iterator*iter)
 }
 
 int
+/* MOCKUP, NOT IMPL! Should give every items below delegation point, inclusive */
+names_allbelow(names_view_type view, names_iterator *iter, ldns_rdf *delegation_point)
+{
+    return names_createiterator(view->dbase, iter, 0, 1);
+}
+
+int
 names_alldomains(names_view_type view, names_iterator*iter)
 {
     return names_createiterator(view->dbase, iter, 0, 1);

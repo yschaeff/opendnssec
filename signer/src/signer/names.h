@@ -85,6 +85,7 @@ int names_firstdenials(names_view_type,names_iterator*iter);
 int names_reversedenials(names_view_type,names_iterator*iter);
 int names_alldomains(names_view_type,names_iterator*iter);
 int names_parentdomains(names_view_type,domain_type*,names_iterator*iter);
+int names_allbelow(names_view_type view, names_iterator *iter, ldns_rdf *delegation_point);
 
 int names_createiterator(struct datastructure*dbase, names_iterator* iter, int indexnum, int reverse);
 int names_iterate(names_iterator*iter, void*);
