@@ -395,14 +395,13 @@ parse_conf_http_listener(const char* cfgfile)
     listener = http_listener_create();
     ods_log_assert(listener);
 
-    /* If port is not set in Listener in the conf file, default value is used.
-     * default port for listener: 15354
+    /* If port is not set in http-Listener in the conf file, default value is used.
      * default port for http listener: 15355
      */
     if (xpathObj->nodesetval && xpathObj->nodesetval->nodeNr > 0) {
         for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
             address = NULL;
-            port = strdup("15355");
+            port = NULL;
             user = NULL;
             pass = NULL;
 
@@ -411,17 +410,17 @@ parse_conf_http_listener(const char* cfgfile)
                 if (xmlStrEqual(curNode->name, (const xmlChar *)"Address")) {
                     address = (char *) xmlNodeGetContent(curNode);
                 } else if (xmlStrEqual(curNode->name, (const xmlChar *)"Port")) {
-                    free((char *)port);
                     port = (char *) xmlNodeGetContent(curNode);
                 } else if (xmlStrEqual(curNode->name, (const xmlChar *)"Username")) {
                     user = (char *) xmlNodeGetContent(curNode);
                 } else if (xmlStrEqual(curNode->name, (const xmlChar *)"Password")) {
                     pass = (char *) xmlNodeGetContent(curNode);
                 }
-
-
                 curNode = curNode->next;
             }
+            if (!port)
+                port = strdup("15355");
+
             if (address) {
                 interface = http_listener_push(listener, address,
                     acl_parse_family(address), port, user, pass);
@@ -446,9 +445,9 @@ parse_conf_http_listener(const char* cfgfile)
         }
     }
     else {
-        interface = http_listener_push(listener, (char *)"", AF_INET, "15355", (char *)"", (char *)"");
+        interface = http_listener_push(listener, (char *)"", AF_INET, "15355", NULL, NULL);
         if (interface) {
-            interface = http_listener_push(listener, (char *)"", AF_INET6, "15355", (char *)"", (char *)"");
+            interface = http_listener_push(listener, (char *)"", AF_INET6, "15355", NULL, NULL);
         }
     }
     xmlXPathFreeObject(xpathObj);

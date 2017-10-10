@@ -184,7 +184,7 @@ engine_start_httpd(engine_type* engine)
 static void
 engine_stop_httpd(engine_type* engine)
 {
-    ods_log_debug("[%s] stoping httpd", engine_str);
+    ods_log_debug("[%s] stopping httpd", engine_str);
     httpd_stop(engine->httpd);
 }
 

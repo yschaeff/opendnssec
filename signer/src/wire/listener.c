@@ -138,14 +138,10 @@ http_listener_push(http_listener_type* listener, char* address, int family, cons
     listener->count++;
     listener->interfaces[listener->count -1].address = strdup(address);
     listener->interfaces[listener->count -1].family = family;
-    listener->interfaces[listener->count -1].user = strdup(user);
-    listener->interfaces[listener->count -1].pass = strdup(pass);
+    listener->interfaces[listener->count -1].port = strdup(port);
+    listener->interfaces[listener->count -1].user = user?strdup(user):NULL;
+    listener->interfaces[listener->count -1].pass = pass?strdup(pass):NULL;
 
-    if (port) {
-        listener->interfaces[listener->count -1].port = strdup(port);
-    } else{
-        listener->interfaces[listener->count -1].port = NULL;
-    }
     memset(&listener->interfaces[listener->count -1].addr, 0,
         sizeof(union acl_addr_storage));
     if (listener->interfaces[listener->count -1].family == AF_INET6 &&
