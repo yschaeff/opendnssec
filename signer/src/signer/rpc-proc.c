@@ -88,6 +88,8 @@ replace(engine_type *engine, struct rpc *rpc)
             return 0;
         }
 
+        /* HAL: TODO: need to "own" the rrset in the view to modify it */
+        /* YBS: How to we own it? */
         rrset_type *rrset = domain_lookup_rrset(domain, type);
         if (!rrset) {
             rrset = rrset_create(zone, type);
@@ -101,7 +103,7 @@ replace(engine_type *engine, struct rpc *rpc)
         }
         (void)rrset_add_rr(rrset, rr);
     }
-    names_commit(view);
+    (void)names_commit(view);/* return undefined */
 
     rpc->status = RPC_OK;
     return 0;
