@@ -238,7 +238,7 @@ httpd_start(struct httpd *httpd)
     };
     httpd->daemon = MHD_start_daemon(
         MHD_USE_DUAL_STACK | MHD_USE_SELECT_INTERNALLY,
-        PORT, NULL, NULL,
+        atoi(httpd->engine->config->http_interfaces->interfaces->port), NULL, NULL,
         &handle_connection, httpd->engine,
         MHD_OPTION_ARRAY, ops, MHD_OPTION_END);
 }
