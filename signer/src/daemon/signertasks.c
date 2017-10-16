@@ -336,6 +336,7 @@ do_signzone(task_type* task, const char* zonename, void* zonearg, void *contexta
             (zone->stats->sig_count <= zone->stats->sig_soa_count)) {
             ods_log_verbose("skip write zone %s serial %u (zone not "
                 "changed)", zone->name?zone->name:"(null)",
+                /* FIXME:  inbound serial might be NULL */
                 (unsigned int)*zone->inboundserial);
             stats_clear(zone->stats);
             pthread_mutex_unlock(&zone->stats->stats_lock);
@@ -461,6 +462,14 @@ do_writezone(task_type* task, const char* zonename, void* zonearg, void *context
                 "zone %s", worker->name, task->owner);
         resign = context->clock_in + 3600;
     }
+
+    /* write metadata */
+    if (metadb_writezone(engine->metadb, zone)) {
+        ods_log_crit("[%s] CRITICAL: failed to write metadata for zone %s",
+                worker->name, task->owner);
+        return schedule_DEFER;
+    }
+
     schedule_scheduletask(engine->taskq, TASK_SIGN, zone->name, zone, &zone->zone_lock, resign);
     return schedule_SUCCESS;
 }

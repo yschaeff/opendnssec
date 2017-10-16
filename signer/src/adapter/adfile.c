@@ -278,8 +278,8 @@ adfile_read_file(FILE* fd, zone_type* zone, names_view_type view)
     }
     /* input zone ok, set inbound serial and apply differences */
     if (result == ODS_STATUS_OK) {
-        free(zone->inboundserial);
-        zone->inboundserial = malloc(sizeof(uint32_t));
+        if (!zone->inboundserial)
+            zone->inboundserial = malloc(sizeof(uint32_t));
         *zone->inboundserial = new_serial;
     }
     return result;

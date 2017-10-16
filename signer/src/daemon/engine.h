@@ -34,6 +34,7 @@
 
 #include "config.h"
 #include <signal.h>
+#include <sqlite3.h>
 
 typedef struct engine_struct engine_type;
 
@@ -72,6 +73,7 @@ struct engine_struct {
     xfrhandler_type* xfrhandler;
     struct httpd *httpd;
     edns_data_type edns;
+    sqlite3 *metadb;
 };
 
 engine_type* engine_create(void);

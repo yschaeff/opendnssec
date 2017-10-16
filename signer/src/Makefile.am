@@ -50,6 +50,7 @@ ods_signerd_SOURCES=		ods-signerd.c \
 				signer/tools.c signer/tools.h \
 				signer/zone.c signer/zone.h \
 				signer/zonelist.c signer/zonelist.h \
+				signer/metadb.c signer/metadb.h \
 				wire/acl.c wire/acl.h \
 				wire/rpc.c wire/rpc.h \
 				wire/axfr.c wire/axfr.h \
@@ -71,7 +72,7 @@ analyze:
 
 ods_signerd_LDADD=		$(LIBHSM)
 ods_signerd_LDADD+=		$(LIBCOMPAT)
-ods_signerd_LDADD+=		@LDNS_LIBS@ @XML2_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @SSL_LIBS@ @C_LIBS@
+ods_signerd_LDADD+=		@LDNS_LIBS@ @XML2_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @SSL_LIBS@ @C_LIBS@ @SQLITE3_LDFLAGS@
 
 ods_signer_SOURCES=		ods-signer.c
 

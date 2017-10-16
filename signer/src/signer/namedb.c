@@ -73,10 +73,8 @@ namedb_update_serial(zone_type* db, const char* zone_name, const char* format,
             format);
         return ODS_STATUS_ERR;
     }
-    if(db->outboundserial) {
-        free(db->outboundserial);
-    }
-    db->outboundserial = malloc(sizeof(uint32_t));
+    if(!db->outboundserial)
+        db->outboundserial = malloc(sizeof(uint32_t));
     *db->outboundserial = soa;
     return ODS_STATUS_OK;
 }

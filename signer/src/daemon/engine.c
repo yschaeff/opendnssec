@@ -42,6 +42,7 @@
 #include "status.h"
 #include "util.h"
 #include "signer/zonelist.h"
+#include "signer/metadb.h"
 #include "wire/tsig.h"
 #include "libhsm.h"
 #include "signertasks.h"
@@ -95,6 +96,7 @@ engine_create(void)
         engine_cleanup(engine);
         return NULL;
     }
+    engine->metadb = NULL;
     schedule_registertask(engine->taskq, TASK_CLASS_SIGNER, TASK_SIGNCONF, do_readsignconf);
     schedule_registertask(engine->taskq, TASK_CLASS_SIGNER, TASK_FORCESIGNCONF, do_forcereadsignconf);
     schedule_registertask(engine->taskq, TASK_CLASS_SIGNER, TASK_READ, do_readzone);
@@ -726,7 +728,8 @@ engine_recover(engine_type* engine)
 
         ods_log_assert(zone->zl_status == ZONE_ZL_ADDED);
         pthread_mutex_lock(&zone->zone_lock);
-            if (status != ODS_STATUS_UNCHANGED) {
+            /* read metadata from DB */
+            if (metadb_readzone(engine->metadb, zone)) {
                 ods_log_warning("[%s] unable to recover zone %s from backup,"
                 " performing full sign", engine_str, zone->name);
             }
@@ -767,6 +770,7 @@ engine_setup_config(engine_type* engine, const char* cfgfile, int cmdline_verbos
     if (!util_check_pidfile(engine->config->pid_filename)) {
         return ODS_STATUS_CONFLICT_ERR;
     }
+    if (metadb_setup(engine)) return ODS_STATUS_DB_ERR;
     return ODS_STATUS_OK;
 }
 
@@ -866,6 +870,7 @@ engine_cleanup(engine_type* engine)
         dnshandler_cleanup(engine->dnshandler);
         xfrhandler_cleanup(engine->xfrhandler);
         httpd_cleanup(engine->httpd);
+        metadb_teardown(engine);
         engine_config_cleanup(engine->config);
         pthread_mutex_destroy(&engine->signal_lock);
         pthread_cond_destroy(&engine->signal_cond);

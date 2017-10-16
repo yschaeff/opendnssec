@@ -396,6 +396,7 @@ zone_update_serial(zone_type* zone, names_view_type view)
         return ODS_STATUS_ERR;
     }
     status = namedb_update_serial(zone, zone->name,
+        /* FIXME inbound serial might be NULL */
         zone->signconf->soa_serial, *zone->inboundserial);
     if (status != ODS_STATUS_OK) {
         ods_log_error("[%s] unable to update zone %s soa serial: %s",
