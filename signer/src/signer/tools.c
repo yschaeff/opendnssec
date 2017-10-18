@@ -100,7 +100,7 @@ tools_input(zone_type* zone)
     ods_log_assert(zone->signconf);
     
     names_view_type view;
-    names_view(zone->namedb, &view);
+    names_viewobtain(zone->namedb, names_INPUTVIEW, &view);
     
     /* Key Rollover? */
     status = zone_publish_dnskeys(zone, view, 0);
@@ -151,7 +151,7 @@ tools_input(zone_type* zone)
     }
     switch(status) {
         case ODS_STATUS_OK:
-            names_commit(view);
+            names_viewcommit(view);
             break;
         case ODS_STATUS_UNCHANGED:
             names_dispose(view);
