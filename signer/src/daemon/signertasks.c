@@ -38,6 +38,7 @@
 #include "status.h"
 #include "signer/tools.h"
 #include "signer/zone.h"
+#include "signer/metadb.h"
 #include "util.h"
 #include "signertasks.h"
 

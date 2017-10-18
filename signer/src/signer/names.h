@@ -87,6 +87,9 @@ static domain_type* names_addname(names_view_type view, ldns_rdf* name)
     return d;
 }
 
+void
+names_delete(names_iterator* iter);
+
 static int
 names_parentdomains(names_view_type view, domain_type* domain, names_iterator* iter)
 {
@@ -97,7 +100,7 @@ static int
 /* MOCKUP, NOT IMPL! Should give every items below delegation point, inclusive */
 names_allbelow(names_view_type view, names_iterator *iter, ldns_rdf *delegation_point)
 {
-    return names_createiterator(view->dbase, iter, 0, 1);
+    assert(!"TODO NOT IMPLEMENTED");
 }
 
 #endif	/* NAMES_H */

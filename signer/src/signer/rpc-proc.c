@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "signer/names.h"
 #include "wire/rpc.h"
 #include "daemon/engine.h"
 
@@ -62,7 +63,7 @@ replace(engine_type *engine, struct rpc *rpc)
     }
 
     names_view_type view;
-    (void)names_view(zone->namedb, &view); /* Return not specified. */
+    (void)names_viewobtain(zone->namedb, names_BASEVIEW, &view); /* Return not specified. */
 
     /* DELETE everything below delegation point, inclusive */
     if (delete(view, rpc->delegation_point)) {
@@ -103,7 +104,7 @@ replace(engine_type *engine, struct rpc *rpc)
         }
         (void)rrset_add_rr(rrset, rr);
     }
-    (void)names_commit(view);/* return undefined */
+    (void)names_viewcommit(view);/* return undefined */
 
     rpc->status = RPC_OK;
     return 0;
