@@ -121,7 +121,7 @@ static db_object_t* __zone_db_new_object(const db_connection_t* connection) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "nextChange")
-        || db_object_field_set_type(object_field, DB_TYPE_INT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -704,7 +704,7 @@ int zone_db_from_result(zone_db_t* zone, const db_result_t* result) {
         || db_value_to_text(db_value_set_at(value_set, 3), &(zone->name))
         || db_value_to_uint32(db_value_set_at(value_set, 4), &(zone->signconf_needs_writing))
         || db_value_to_text(db_value_set_at(value_set, 5), &(zone->signconf_path))
-        || db_value_to_int32(db_value_set_at(value_set, 6), &(zone->next_change))
+        || db_value_to_uint64(db_value_set_at(value_set, 6), &(zone->next_change))
         || db_value_to_uint32(db_value_set_at(value_set, 7), &(zone->ttl_end_ds))
         || db_value_to_uint32(db_value_set_at(value_set, 8), &(zone->ttl_end_dk))
         || db_value_to_uint32(db_value_set_at(value_set, 9), &(zone->ttl_end_rs))
@@ -803,7 +803,7 @@ const char* zone_db_signconf_path(const zone_db_t* zone) {
     return zone->signconf_path;
 }
 
-int zone_db_next_change(const zone_db_t* zone) {
+unsigned int zone_db_next_change(const zone_db_t* zone) {
     if (!zone) {
         return 0;
     }
@@ -988,7 +988,7 @@ int zone_db_set_signconf_path(zone_db_t* zone, const char* signconf_path_text) {
     return DB_OK;
 }
 
-int zone_db_set_next_change(zone_db_t* zone, int next_change) {
+int zone_db_set_next_change(zone_db_t* zone, unsigned int next_change) {
     if (!zone) {
         return DB_ERROR_UNKNOWN;
     }
@@ -1290,7 +1290,7 @@ int zone_db_create(zone_db_t* zone) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "nextChange")
-        || db_object_field_set_type(object_field, DB_TYPE_INT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1437,7 +1437,7 @@ int zone_db_create(zone_db_t* zone) {
         || db_value_from_text(db_value_set_get(value_set, 1), zone->name)
         || db_value_from_uint32(db_value_set_get(value_set, 2), zone->signconf_needs_writing)
         || db_value_from_text(db_value_set_get(value_set, 3), zone->signconf_path)
-        || db_value_from_int32(db_value_set_get(value_set, 4), zone->next_change)
+        || db_value_from_uint64(db_value_set_get(value_set, 4), zone->next_change)
         || db_value_from_uint32(db_value_set_get(value_set, 5), zone->ttl_end_ds)
         || db_value_from_uint32(db_value_set_get(value_set, 6), zone->ttl_end_dk)
         || db_value_from_uint32(db_value_set_get(value_set, 7), zone->ttl_end_rs)
@@ -1675,7 +1675,7 @@ int zone_db_update(zone_db_t* zone) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "nextChange")
-        || db_object_field_set_type(object_field, DB_TYPE_INT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1822,7 +1822,7 @@ int zone_db_update(zone_db_t* zone) {
         || db_value_from_text(db_value_set_get(value_set, 1), zone->name)
         || db_value_from_uint32(db_value_set_get(value_set, 2), zone->signconf_needs_writing)
         || db_value_from_text(db_value_set_get(value_set, 3), zone->signconf_path)
-        || db_value_from_int32(db_value_set_get(value_set, 4), zone->next_change)
+        || db_value_from_uint64(db_value_set_get(value_set, 4), zone->next_change)
         || db_value_from_uint32(db_value_set_get(value_set, 5), zone->ttl_end_ds)
         || db_value_from_uint32(db_value_set_get(value_set, 6), zone->ttl_end_dk)
         || db_value_from_uint32(db_value_set_get(value_set, 7), zone->ttl_end_rs)

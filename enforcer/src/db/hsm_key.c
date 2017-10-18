@@ -173,7 +173,7 @@ static db_object_t* __hsm_key_new_object(const db_connection_t* connection) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -437,7 +437,7 @@ int hsm_key_from_result(hsm_key_t* hsm_key, const db_result_t* result) {
         || db_value_to_uint32(db_value_set_at(value_set, 5), &(hsm_key->bits))
         || db_value_to_uint32(db_value_set_at(value_set, 6), &(hsm_key->algorithm))
         || db_value_to_enum_value(db_value_set_at(value_set, 7), &role, hsm_key_enum_set_role)
-        || db_value_to_uint32(db_value_set_at(value_set, 8), &(hsm_key->inception))
+        || db_value_to_uint64(db_value_set_at(value_set, 8), &(hsm_key->inception))
         || db_value_to_uint32(db_value_set_at(value_set, 9), &(hsm_key->is_revoked))
         || db_value_to_enum_value(db_value_set_at(value_set, 10), &key_type, hsm_key_enum_set_key_type)
         || db_value_to_text(db_value_set_at(value_set, 11), &(hsm_key->repository))
@@ -1021,7 +1021,7 @@ int hsm_key_create(hsm_key_t* hsm_key) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1082,7 +1082,7 @@ int hsm_key_create(hsm_key_t* hsm_key) {
         || db_value_from_uint32(db_value_set_get(value_set, 3), hsm_key->bits)
         || db_value_from_uint32(db_value_set_get(value_set, 4), hsm_key->algorithm)
         || db_value_from_enum_value(db_value_set_get(value_set, 5), hsm_key->role, hsm_key_enum_set_role)
-        || db_value_from_uint32(db_value_set_get(value_set, 6), hsm_key->inception)
+        || db_value_from_uint64(db_value_set_get(value_set, 6), hsm_key->inception)
         || db_value_from_uint32(db_value_set_get(value_set, 7), hsm_key->is_revoked)
         || db_value_from_enum_value(db_value_set_get(value_set, 8), hsm_key->key_type, hsm_key_enum_set_key_type)
         || db_value_from_text(db_value_set_get(value_set, 9), hsm_key->repository)
@@ -1321,7 +1321,7 @@ int hsm_key_update(hsm_key_t* hsm_key) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1382,7 +1382,7 @@ int hsm_key_update(hsm_key_t* hsm_key) {
         || db_value_from_uint32(db_value_set_get(value_set, 3), hsm_key->bits)
         || db_value_from_uint32(db_value_set_get(value_set, 4), hsm_key->algorithm)
         || db_value_from_enum_value(db_value_set_get(value_set, 5), hsm_key->role, hsm_key_enum_set_role)
-        || db_value_from_uint32(db_value_set_get(value_set, 6), hsm_key->inception)
+        || db_value_from_uint64(db_value_set_get(value_set, 6), hsm_key->inception)
         || db_value_from_uint32(db_value_set_get(value_set, 7), hsm_key->is_revoked)
         || db_value_from_enum_value(db_value_set_get(value_set, 8), hsm_key->key_type, hsm_key_enum_set_key_type)
         || db_value_from_text(db_value_set_get(value_set, 9), hsm_key->repository)

@@ -127,7 +127,7 @@ static db_object_t* __key_data_new_object(const db_connection_t* connection) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -490,6 +490,7 @@ int key_data_from_result(key_data_t* key_data, const db_result_t* result) {
     db_value_reset(&(key_data->rev));
     db_value_reset(&(key_data->zone_id));
     db_value_reset(&(key_data->hsm_key_id));
+
     if (!(value_set = db_result_value_set(result))
         || db_value_set_size(value_set) != 16
         || db_value_copy(&(key_data->id), db_value_set_at(value_set, 0))
@@ -497,7 +498,7 @@ int key_data_from_result(key_data_t* key_data, const db_result_t* result) {
         || db_value_copy(&(key_data->zone_id), db_value_set_at(value_set, 2))
         || db_value_copy(&(key_data->hsm_key_id), db_value_set_at(value_set, 3))
         || db_value_to_uint32(db_value_set_at(value_set, 4), &(key_data->algorithm))
-        || db_value_to_uint32(db_value_set_at(value_set, 5), &(key_data->inception))
+        || db_value_to_uint64(db_value_set_at(value_set, 5), &(key_data->inception))
         || db_value_to_enum_value(db_value_set_at(value_set, 6), &role, key_data_enum_set_role)
         || db_value_to_uint32(db_value_set_at(value_set, 7), &(key_data->introducing))
         || db_value_to_uint32(db_value_set_at(value_set, 8), &(key_data->should_revoke))
@@ -1152,7 +1153,7 @@ int key_data_create(key_data_t* key_data) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1270,7 +1271,7 @@ int key_data_create(key_data_t* key_data) {
     if (db_value_copy(db_value_set_get(value_set, 0), &(key_data->zone_id))
         || db_value_copy(db_value_set_get(value_set, 1), &(key_data->hsm_key_id))
         || db_value_from_uint32(db_value_set_get(value_set, 2), key_data->algorithm)
-        || db_value_from_uint32(db_value_set_get(value_set, 3), key_data->inception)
+        || db_value_from_uint64(db_value_set_get(value_set, 3), key_data->inception)
         || db_value_from_enum_value(db_value_set_get(value_set, 4), key_data->role, key_data_enum_set_role)
         || db_value_from_uint32(db_value_set_get(value_set, 5), key_data->introducing)
         || db_value_from_uint32(db_value_set_get(value_set, 6), key_data->should_revoke)
@@ -1410,7 +1411,7 @@ int key_data_update(key_data_t* key_data) {
 
     if (!(object_field = db_object_field_new())
         || db_object_field_set_name(object_field, "inception")
-        || db_object_field_set_type(object_field, DB_TYPE_UINT32)
+        || db_object_field_set_type(object_field, DB_TYPE_UINT64)
         || db_object_field_list_add(object_field_list, object_field))
     {
         db_object_field_free(object_field);
@@ -1528,7 +1529,7 @@ int key_data_update(key_data_t* key_data) {
     if (db_value_copy(db_value_set_get(value_set, 0), &(key_data->zone_id))
         || db_value_copy(db_value_set_get(value_set, 1), &(key_data->hsm_key_id))
         || db_value_from_uint32(db_value_set_get(value_set, 2), key_data->algorithm)
-        || db_value_from_uint32(db_value_set_get(value_set, 3), key_data->inception)
+        || db_value_from_uint64(db_value_set_get(value_set, 3), key_data->inception)
         || db_value_from_enum_value(db_value_set_get(value_set, 4), key_data->role, key_data_enum_set_role)
         || db_value_from_uint32(db_value_set_get(value_set, 5), key_data->introducing)
         || db_value_from_uint32(db_value_set_get(value_set, 6), key_data->should_revoke)
