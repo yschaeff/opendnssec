@@ -44,8 +44,8 @@ metadb_teardown(engine_type *engine);
 int
 metadb_readzone(sqlite3 *db, zone_type *zone);
 
-/* Read zone metadata from database into zone. 0 on success. 
- * On failure no values are written to zone. */
+/* Write zone metadata to database from zone. 0 on success. 
+ */
 int
 metadb_writezone(sqlite3 *db, zone_type *zone);
 
