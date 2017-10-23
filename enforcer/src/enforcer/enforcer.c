@@ -76,8 +76,8 @@ struct future_key {
     int pretend_update;
 };
 
-static int max(int a, int b) { return a>b?a:b; }
-static int min(int a, int b) { return a<b?a:b; }
+static unsigned int max(unsigned int a, unsigned int b) { return a>b?a:b; }
+static unsigned int min(unsigned int a, unsigned int b) { return a<b?a:b; }
 
 /**
  * Stores the minimum of parm1 and parm2 in parm2.
@@ -660,7 +660,7 @@ static unsigned int
 getZoneTTL(struct dbw_zone *zone, int type, const time_t now)
 {
     time_t end_date = 0;
-    int ttl = 0;
+    unsigned int ttl = 0;
     struct dbw_policy *policy = zone->policy;
 
     switch (type) {
@@ -686,7 +686,7 @@ getZoneTTL(struct dbw_zone *zone, int type, const time_t now)
             ods_log_assert(0);
     }
 
-    return max((int)difftime(end_date, now), ttl);
+    return max(difftime(end_date, now)>0?(unsigned int)difftime(end_date, now):0, ttl);
 }
 
 static struct dbw_keystate *
@@ -1130,10 +1130,10 @@ existsPolicyForKey(const struct dbw_policy *policy, const struct dbw_key *key)
 /**
  * Find the inception time of the most recent key for this policy.
  */
-static int
+static unsigned int
 last_inception_policy(const struct dbw_zone *zone, const struct dbw_policykey *pkey)
 {
-    int max_inception = -1;
+    unsigned int max_inception = 0;
     for (size_t k = 0; k < zone->key_count; k++) {
         struct dbw_key *key = zone->key[k];
         if (!key_matches_pkey(key, pkey)) continue;
@@ -1428,7 +1428,7 @@ removeDeadKeys(struct dbw_zone *zone, const time_t now, int mockup)
         struct dbw_key *key = zone->key[k];
         if (key->introducing) continue;
         if (key->dirty == DBW_DELETE) continue;
-        time_t key_time = -1;
+        time_t key_time = 0;
         int purgable = 1;
         for (size_t s = 0; s < key->keystate_count; s++) {
             struct dbw_keystate *keystate = key->keystate[s];

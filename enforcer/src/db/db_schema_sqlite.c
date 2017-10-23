@@ -27,7 +27,7 @@
  */
 
 const char* db_schema_sqlite_create[] = {
-    "CREATE TABLE zone ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,  rev INTEGER NOT NULL DEFAULT 1,  policyId INTEGER NOT NULL,  name TEXT NOT NULL,  signconfNeedsWriting UNSIGNED INT NOT NULL,  signconfPath TEXT NOT NULL,  nextChange INT NOT NULL,  ttlEndDs UNSIGNED INT NOT NULL,  ttlEndDk UNSIGNED INT NOT NULL,  ttlEndRs UNSIGNED INT NOT NULL,  rollKskNow UNSIGNED INT NOT NULL,  rollZskNow UNSIGNED INT NOT NULL,  rollCskNow UNSIGNED INT NOT NULL,  inputAdapterType TEXT NOT NULL,  inputAdapterU",
+    "CREATE TABLE zone ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,  rev INTEGER NOT NULL DEFAULT 1,  policyId INTEGER NOT NULL,  name TEXT NOT NULL,  signconfNeedsWriting UNSIGNED INT NOT NULL,  signconfPath TEXT NOT NULL,  nextChange UNSIGNED INT NOT NULL,  ttlEndDs UNSIGNED INT NOT NULL,  ttlEndDk UNSIGNED INT NOT NULL,  ttlEndRs UNSIGNED INT NOT NULL,  rollKskNow UNSIGNED INT NOT NULL,  rollZskNow UNSIGNED INT NOT NULL,  rollCskNow UNSIGNED INT NOT NULL,  inputAdapterType TEXT NOT NULL,  inputAdapterU",
     "ri TEXT NOT NULL,  outputAdapterType TEXT NOT NULL,  outputAdapterUri TEXT NOT NULL,  nextKskRoll UNSIGNED INT NOT NULL,  nextZskRoll UNSIGNED INT NOT NULL,  nextCskRoll UNSIGNED INT NOT NULL)",
     0,
     "CREATE INDEX zonePolicyId ON zone ( policyId )",

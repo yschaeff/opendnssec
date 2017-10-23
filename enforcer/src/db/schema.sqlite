@@ -31,7 +31,7 @@ CREATE TABLE zone (
     name TEXT NOT NULL,
     signconfNeedsWriting UNSIGNED INT NOT NULL,
     signconfPath TEXT NOT NULL,
-    nextChange INT NOT NULL,
+    nextChange UNSIGNED INT NOT NULL,
     ttlEndDs UNSIGNED INT NOT NULL,
     ttlEndDk UNSIGNED INT NOT NULL,
     ttlEndRs UNSIGNED INT NOT NULL,

@@ -53,7 +53,7 @@ struct zone_db {
     char* name;
     unsigned int signconf_needs_writing;
     char* signconf_path;
-    int next_change;
+    unsigned int next_change;
     unsigned int ttl_end_ds;
     unsigned int ttl_end_dk;
     unsigned int ttl_end_rs;
@@ -155,7 +155,7 @@ const char* zone_db_signconf_path(const zone_db_t* zone);
  * \param[in] zone a zone_db_t pointer.
  * \return an integer.
  */
-int zone_db_next_change(const zone_db_t* zone);
+unsigned int zone_db_next_change(const zone_db_t* zone);
 
 /**
  * Get the ttl_end_ds of a zone object. Undefined behavior if `zone` is NULL.
@@ -286,7 +286,7 @@ int zone_db_set_signconf_path(zone_db_t* zone, const char* signconf_path_text);
  * \param[in] next_change an integer.
  * \return DB_ERROR_* on failure, otherwise DB_OK.
  */
-int zone_db_set_next_change(zone_db_t* zone, int next_change);
+int zone_db_set_next_change(zone_db_t* zone, unsigned int next_change);
 
 /**
  * Set the ttl_end_ds of a zone object.
