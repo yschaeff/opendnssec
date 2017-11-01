@@ -110,6 +110,10 @@ handle_connection(void *cls, struct MHD_Connection *connection,
     const char *upload_data,
     size_t *upload_data_size, void **con_cls)
 {
+    char *user = NULL, *pass = NULL;
+    int fail = 0;
+    int ret;
+
     printf("%s - %s - %s - %ld\n", url, method, version, *upload_data_size);
     if(!*con_cls) {
         struct connection_info *con_info = malloc(sizeof(struct connection_info));
@@ -154,9 +158,24 @@ handle_connection(void *cls, struct MHD_Connection *connection,
             (void*) body, MHD_RESPMEM_PERSISTENT);
         http_status_code = MHD_HTTP_BAD_REQUEST;
     }
-  int ret = MHD_queue_response(connection, http_status_code, response);
-  MHD_destroy_response(response);
-  return ret;
+
+    user = MHD_basic_auth_get_username_password(connection, &pass);
+    fail = ((user == NULL) ||
+            (strcmp(user, ((engine_type *)cls)->config->http_interfaces->interfaces[0].user)) ||
+            (strcmp(pass, ((engine_type *)cls)->config->http_interfaces->interfaces[0].pass)));
+    free(user);
+    free(pass);
+
+    if (fail) {
+        const char *page = "<html><body>Wrong Username or Password</body></html>";
+        response = MHD_create_response_from_buffer(strlen(page), (void*) page, MHD_RESPMEM_PERSISTENT);
+        ret = MHD_queue_basic_auth_fail_response(connection, "my realm", response);
+    }
+    else
+        ret = MHD_queue_response(connection, http_status_code, response);
+
+    MHD_destroy_response(response);
+    return ret;
 }
 
 static void
