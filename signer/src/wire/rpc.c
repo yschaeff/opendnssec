@@ -37,7 +37,7 @@
 #define RR_BUFLEN 65536
 
 /* sample data */
-/*curl --data '{"meta": {"zone": "zone.co.uk"}, "data": [{"owner": "zone.co.uk", "type": "A", "ttl": "600", "rdata": "1.1.1.1", "class": "IN"}]}' localhost:8888/replace/co.uk/zone.co.uk*/
+/*curl --data '{"apiversion": "20171113", "correlation": "CURL test", "entities": [{"name": "zone.co.uk", "type": "A", "ttl": "600", "rdata": "1.1.1.1", "class": "IN"}]}' localhost:8888/api/v1/changedelegation/co.uk/zone.co.uk*/
 
 struct rpc *
 rpc_decode_json(const char *url, const char *buf, size_t buflen)
@@ -56,37 +56,37 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         return NULL;
     }
 
-    /*json_t *obj_meta = json_object_get(root, "meta");*/
-    /*if (!obj_meta || !json_is_object(obj_meta)) {*/
-        /*printf("meta dict not found.\n");*/
-        /*json_decref(root);*/
-        /*return NULL;*/
-    /*}*/
-    /*json_t *obj_zone = json_object_get(obj_meta, "zone");*/
-    /*if (!obj_zone || !json_is_string(obj_zone)) {*/
-        /*printf("zone string not found.\n");*/
-        /*json_decref(root);*/
-        /*return NULL;*/
-    /*}*/
+    json_t *obj_version = json_object_get(root, "apiversion");
+    if (!obj_version || !json_is_string(obj_version)) {
+        printf("apiversion not found.\n");
+        json_decref(root);
+        return NULL;
+    }
+    json_t *obj_correlation = json_object_get(root, "correlation");
+    if (!obj_correlation || !json_is_string(obj_correlation)) {
+        printf("correlation not found.\n");
+        json_decref(root);
+        return NULL;
+    }
 
-    json_t *obj_data = json_object_get(root, "data");
-    if (!obj_data || !json_is_array(obj_data)) {
-        printf("data array not found.\n");
+    json_t *obj_entities = json_object_get(root, "entities");
+    if (!obj_entities || !json_is_array(obj_entities)) {
+        printf("entities array not found.\n");
         json_decref(root);
         return NULL;
     }
 
     int err = 0;
-    size_t rr_count = json_array_size(obj_data);
+    size_t rr_count = json_array_size(obj_entities);
     ldns_rr **rr = calloc(rr_count, sizeof(ldns_rr *));
     for (size_t i = 0; i < rr_count; i++) {
-        json_t *rr_dict = json_array_get(obj_data, i);
+        json_t *rr_dict = json_array_get(obj_entities, i);
         if (!rr_dict || !json_is_object(rr_dict)) {
             printf("not an rr?.\n");
             err = 1;
             break;
         }
-        json_t *rr_owner = json_object_get(rr_dict, "owner");
+        json_t *rr_owner = json_object_get(rr_dict, "name");
         if (!rr_owner || !json_is_string(rr_owner)) {
             printf("rr_owner string not found.\n");
             err = 1;
@@ -145,10 +145,12 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
 
     char *ptr = NULL;
     char *tok_url = strdup(url);
-    char *opc = strtok_r(tok_url, "/", &ptr);
+    char *api = strtok_r(tok_url, "/", &ptr);
+    char *version = strtok_r(NULL, "/", &ptr);
+    char *opc = strtok_r(NULL, "/", &ptr);
     char *zone = strtok_r(NULL, "/", &ptr);
     char *delegation_point = strtok_r(NULL, "/", &ptr);
-    if(!opc || !delegation_point) {
+    if(!api || !version || !opc || !delegation_point) {
         printf("url is funky\n");
         free(tok_url);
         return NULL;
@@ -157,6 +159,7 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
     struct rpc *rpc = malloc(sizeof(struct rpc));
     if (!rpc) {
         json_decref(root);
+        free(tok_url);
         return NULL;
     }
     if (!strcmp(opc, "changedelegation")) {
@@ -170,6 +173,9 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         return NULL;
     }
     rpc->zone = strdup(zone);
+    rpc->version = strdup(version);
+    rpc->detail_version = strdup(json_string_value(obj_version));
+    rpc->correlation = strdup(json_string_value(obj_correlation));
     rpc->delegation_point = strdup(delegation_point);
     rpc->rr_count = rr_count;
     rpc->rr = rr;
@@ -194,6 +200,9 @@ rpc_destroy(struct rpc *rpc)
 {
     if (!rpc) return;
     free(rpc->zone);
+    free(rpc->version);
+    free(rpc->detail_version);
+    free(rpc->correlation);
     free(rpc->delegation_point);
     for (size_t i = 0; i < rpc->rr_count; i++) {
         ldns_rr_free(rpc->rr[i]);

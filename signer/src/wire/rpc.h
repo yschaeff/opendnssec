@@ -45,6 +45,9 @@ enum rpc_status {
 struct rpc {
     enum rpc_opcode opc;//insert, delete, update
     char *zone; /* Zone to operate on */
+    char *version; /* Major version from url. e.g. 'v1' */
+    char *detail_version; /* Detailed version from JSON. e.g. '20171113' */
+    char *correlation;
     char *delegation_point; /* Delete everything below */
     int rr_count;
     ldns_rr **rr; /* array of resource records  */
