@@ -230,7 +230,7 @@ httpd_start(struct httpd *httpd)
         { MHD_OPTION_NOTIFY_COMPLETED, (intptr_t)handle_connection_done, NULL },
         { MHD_OPTION_NOTIFY_CONNECTION, (intptr_t)handle_connection_start, NULL },
         /* TODO this only add first interface, can it even support multiple? */
-        { MHD_OPTION_SOCK_ADDR, NULL, (intptr_t)(httpd->ifs+0) },
+        { MHD_OPTION_SOCK_ADDR, 0, httpd->ifs+0 },
         /*{ MHD_OPTION_SOCK_ADDR, NULL, (intptr_t)(httpd->ifs+1) },*/
         /*{ MHD_OPTION_CONNECTION_LIMIT, 100, NULL },*/
         /*{ MHD_OPTION_CONNECTION_TIMEOUT, 10, NULL },*/
@@ -238,7 +238,7 @@ httpd_start(struct httpd *httpd)
     };
     httpd->daemon = MHD_start_daemon(
         MHD_USE_DUAL_STACK | MHD_USE_SELECT_INTERNALLY,
-        NULL, NULL, NULL,
+        0, NULL, NULL,
         &handle_connection, httpd->engine,
         MHD_OPTION_ARRAY, ops, MHD_OPTION_END);
 }

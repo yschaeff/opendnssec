@@ -304,6 +304,21 @@ rrset_del_rr(rrset_type* rrset, uint16_t rrnum)
 }
 
 /**
+ * Delete all RRs from RRset.
+ *
+ */
+void
+rrset_del_rrs(rrset_type* rrset)
+{
+    for (size_t i = 0; i < rrset->rr_count; i++) {
+        ldns_rr_free(rrset->rrs[i].rr);
+    }
+    rrset->rr_count = 0;
+    free(rrset->rrs);
+    rrset->needs_signing = 1;
+}
+
+/**
  * Remove signatures, deallocate storage and add then to the outgoing IFXR for that zone.
  *
  */

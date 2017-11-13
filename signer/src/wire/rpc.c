@@ -159,8 +159,10 @@ rpc_decode_json(const char *url, const char *buf, size_t buflen)
         json_decref(root);
         return NULL;
     }
-    if (!strcmp(opc, "replace")) {
-        rpc->opc = RPC_REPLACE;
+    if (!strcmp(opc, "changedelegation")) {
+        rpc->opc = RPC_CHANGE_DELEGATION;
+    } else if (!strcmp(opc, "changename")) {
+        rpc->opc = RPC_CHANGE_NAME;
     } else {
         printf("unknown RPC\n");
         free(rpc);

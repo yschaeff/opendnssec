@@ -129,6 +129,7 @@ rr_type* rrset_add_rr(rrset_type* rrset, ldns_rr* rr);
  *
  */
 void rrset_del_rr(rrset_type* rrset, uint16_t rrnum);
+void rrset_del_rrs(rrset_type* rrset);
 
 /**
  * Add RRSIG to RRset.

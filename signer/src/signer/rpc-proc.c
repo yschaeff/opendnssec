@@ -35,7 +35,7 @@
 #include "signer/rpc-proc.h"
 
 static int
-delete(names_view_type view, const char *delegation_point)
+delete_delegation(names_view_type view, const char *delegation_point)
 {
     ldns_rdf *dp_name = ldns_rdf_new_frm_str(LDNS_RDF_TYPE_DNAME, delegation_point);
     if (!dp_name) return 1;
@@ -51,9 +51,9 @@ delete(names_view_type view, const char *delegation_point)
 }
 
 static int
-replace(engine_type *engine, struct rpc *rpc)
+replace(engine_type *engine, struct rpc *rpc, int delegation)
 {
-    /* TODO this ASSUMES IN. We should add that to URL as well */
+    /* todo this assumes in. we should add that to url as well */
     zone_type *zone = zonelist_lookup_zone_by_name(engine->zonelist, rpc->zone,
         LDNS_RR_CLASS_IN);
     if (!zone) {
@@ -62,15 +62,30 @@ replace(engine_type *engine, struct rpc *rpc)
     }
 
     names_view_type view;
-    (void)names_view(zone->namedb, &view); /* Return not specified. */
+    (void)names_view(zone->namedb, &view); /* return not specified. */
 
-    /* DELETE everything below delegation point, inclusive */
-    if (delete(view, rpc->delegation_point)) {
-        rpc->status = RPC_ERR;
-        return 0;
+    if (delegation) {
+        /* delete everything below delegation point, inclusive */
+        if (delete_delegation(view, rpc->delegation_point)) {
+            rpc->status = RPC_ERR;
+            return 0;
+        }
+    } else {
+        /* Not a delegation. Remove any rrsets mentioned in the request. */
+        for (size_t i = 0; i < rpc->rr_count; i++) {
+            ldns_rr *rr = rpc->rr[i];
+            domain_type *domain = names_lookupname(view, ldns_rr_owner(rr));
+            if (!domain) {
+                names_rollback(view);
+                rpc->status = RPC_ERR;
+                return 0;
+            }
+            rrset_type *rrset = domain_lookup_rrset(domain, ldns_rr_get_type(rr));
+            if (rrset) rrset_del_rrs(rrset);
+        }
     }
 
-    /* Now INSERT all rr's from rpc */
+    /* now insert all rr's from rpc */
     for (size_t i = 0; i < rpc->rr_count; i++) {
         ldns_rr *rr = ldns_rr_clone(rpc->rr[i]);
         if (!rr) {
@@ -80,7 +95,7 @@ replace(engine_type *engine, struct rpc *rpc)
         }
         ldns_rdf *owner = ldns_rr_owner(rr);
         ldns_rr_type type = ldns_rr_get_type(rr);
-        /* This shouldn't be in the database anymore so we get a new object */
+        /* this shouldn't be in the database anymore so we get a new object */
         domain_type *domain = names_lookupname(view, owner);
         if (!domain) {
             names_rollback(view);
@@ -88,8 +103,8 @@ replace(engine_type *engine, struct rpc *rpc)
             return 0;
         }
 
-        /* HAL: TODO: need to "own" the rrset in the view to modify it */
-        /* YBS: How to we own it? */
+        /* hal: todo: need to "own" the rrset in the view to modify it */
+        /* ybs: how to we own it? */
         rrset_type *rrset = domain_lookup_rrset(domain, type);
         if (!rrset) {
             rrset = rrset_create(zone, type);
@@ -113,8 +128,10 @@ int
 rpcproc_apply(engine_type *engine, struct rpc *rpc)
 {
     switch (rpc->opc) {
-        case RPC_REPLACE:
-            return replace(engine, rpc);
+        case RPC_CHANGE_DELEGATION:
+            return replace(engine, rpc, 1);
+        case RPC_CHANGE_NAME:
+            return replace(engine, rpc, 0);
         default:
             rpc->status = RPC_ERR;
             return 0;

@@ -32,7 +32,8 @@
 #include <ldns/ldns.h>
 
 enum rpc_opcode {
-    RPC_REPLACE    /* Remove all records with the same owner name and insert new. */
+    RPC_CHANGE_DELEGATION, /* Remove all records with the same owner name and below and insert new. */
+    RPC_CHANGE_NAME,       /* Remove all records with the same owner name and insert new. */
 };
 
 enum rpc_status {
