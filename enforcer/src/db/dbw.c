@@ -613,31 +613,46 @@ dbw_hsmkey_update(const db_connection_t *dbconn, struct dbrow *row)
 /**
  * cmp -,0,+: lt, eq, gt
  */
-static void
-quicksort(struct dbrow **row, int first, int last,
-    int (*cmp)(struct dbrow*, struct dbrow*))
+
+static int
+partition(struct dbrow **row, int first, int last,
+          int (*cmp)(struct dbrow*, struct dbrow*))
 {
-    /** not very efficient for already sorted lists! */
-    int pivot, j, i;
+
+    int pivot, i, j;
+    pivot = last;
+    i = first - 1;
     struct dbrow *temp;
-    if(first >= last) return;
-    pivot = i = first;
-    j = last;
-    while (i < j) {
-        while (i < last && LTE(cmp(row[i], row[pivot]))) i++;
-        while (GT(cmp(row[j], row[pivot]))) j--;
-        if (i < j) {
+
+    for (j = first; j <= last - 1; j++) {
+        if (LTE(cmp(row[j], row[pivot]))) {
+            i++;
             temp = row[i];
             row[i] = row[j];
             row[j] = temp;
         }
     }
-    temp = row[pivot];
-    row[pivot] = row[j];
-    row[j] = temp;
-    quicksort(row, first, j-1, cmp);
-    quicksort(row, j+1, last, cmp);
+    temp = row[i + 1];
+    row[i + 1] = row[last];
+    row[last] = temp;
+    return i + 1;
 }
+
+static void
+quicksort(struct dbrow **row, int first, int last,
+    int (*cmp)(struct dbrow*, struct dbrow*))
+{
+    /** not very efficient for already sorted lists! */
+    int pivot;
+    struct dbrow *temp;
+    if(first >= last) return;
+    pivot = partition(row, first, last, cmp);
+    quicksort(row, first, pivot - 1, cmp);
+    quicksort(row, pivot + 1, last, cmp);
+}
+
+
+
 static int cmp_id(struct dbrow *l, struct dbrow *r) { return l->id - r->id; }
 static int cmp_int0(struct dbrow *l, struct dbrow *r) { return l->int0 - r->int0; }
 static int cmp_int1(struct dbrow *l, struct dbrow *r) { return l->int1 - r->int1; }
