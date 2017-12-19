@@ -506,12 +506,13 @@ int policy_import(int sockfd, engine_type* engine, db_connection_t *dbconn,
             continue;
         }
 
-        if (p->denial_salt_length != (xpolicies+i)->denial_salt_length)
-            resalt_task_flush(engine, dbconn, p->name);
-
         xml2db(p, xpolicies+i);
-        if (!p->scratch)
+        if (!p->scratch) {
             p->scratch = 3; /* do not delete */
+            if (p->denial_salt_length != (xpolicies+i)->denial_salt_length) {
+                resalt_task_flush(engine, dbconn, p->name);
+            }
+        }
         dbw_mark_dirty((struct dbrow *)p);
         /* policykeys */
         for (int pk = 0; pk < p->policykey_count; pk++) {
