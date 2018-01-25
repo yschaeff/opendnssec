@@ -170,6 +170,17 @@ engine_create_workers(engine_type* engine)
     }
 }
 
+static void
+check_database_connection(worker_type* worker)
+{
+    db_connection_t *conn = (db_connection_t *)worker->context;
+    /* Hack for now, query for version if that fails -> reconnect */
+    if (!conn || !database_version_get_version(conn)) {
+        ods_log_warning("Database connection has gone away. Reconnecting");
+        worker->context = get_database_connection(conn->configuration_list);
+    }
+}
+
 void
 engine_start_workers(engine_type* engine)
 {
@@ -180,7 +191,8 @@ engine_start_workers(engine_type* engine)
     ods_log_debug("[%s] start workers", engine_str);
     for (i=0; i < (size_t) engine->config->num_worker_threads; i++) {
         engine->workers[i]->need_to_exit = 0;
-        engine->workers[i]->context = get_database_connection(engine);
+        engine->workers[i]->check_connection = check_database_connection;
+        engine->workers[i]->context = get_database_connection(engine->dbcfg_list);
         if (!engine->workers[i]->context) {
             ods_log_crit("Failed to start worker, could not connect to database");
         } else {
@@ -223,12 +235,12 @@ engine_wakeup_workers(engine_type* engine)
 }
 
 db_connection_t*
-get_database_connection(engine_type* engine)
+get_database_connection(const db_configuration_list_t* dbcfg_list)
 {
     db_connection_t* dbconn;
 
     if (!(dbconn = db_connection_new())
-        || db_connection_set_configuration_list(dbconn, engine->dbcfg_list)
+        || db_connection_set_configuration_list(dbconn, dbcfg_list)
         || db_connection_setup(dbconn)
         || db_connection_connect(dbconn))
     {
@@ -237,6 +249,12 @@ get_database_connection(engine_type* engine)
         return NULL;
     }
     return dbconn;
+}
+
+static db_connection_t*
+get_database_connection_wrap(engine_type* engine)
+{
+    return get_database_connection(engine->dbcfg_list);
 }
 
 /*
@@ -250,7 +268,7 @@ probe_database(engine_type* engine)
     db_connection_t *conn;
     int version;
 
-    conn = get_database_connection(engine);
+    conn = get_database_connection(engine->dbcfg_list);
     if (!conn) return 1;
     version = database_version_get_version(conn);
     db_connection_free(conn);
@@ -454,7 +472,7 @@ engine_setup()
     }
 
     /* create command handler (before chowning socket file) */
-    engine->cmdhandler = cmdhandler_create(engine->config->clisock_filename, enforcercommands, engine, (void*(*)(void*)) (void(*)(void*))&get_database_connection, (void(*)(void*))&db_connection_free);
+    engine->cmdhandler = cmdhandler_create(engine->config->clisock_filename, enforcercommands, engine, (void*(*)(void*)) (void(*)(void*))&get_database_connection_wrap, (void(*)(void*))&db_connection_free);
     if (!engine->cmdhandler) {
         ods_log_error("[%s] create command handler to %s failed",
             engine_str, engine->config->clisock_filename);

@@ -72,7 +72,7 @@ struct engine_struct {
  * \param engine, the engine containing database configuration
  * \return connection on success, NULL on failure.
  */
-db_connection_t* get_database_connection(engine_type* engine);
+db_connection_t* get_database_connection(const db_configuration_list_t* dbcfg_list);
 
 
 /**

@@ -43,6 +43,7 @@ worker_create(char* name, schedule_type* taskq)
     worker->name = name;
     worker->need_to_exit = 0;
     worker->context = NULL;
+    worker->check_connection = NULL;
     worker->taskq = taskq;
     worker->tasksOutstanding = 0;
     worker->tasksFailed = 0;
@@ -67,6 +68,8 @@ worker_start(worker_type* worker)
          * Then it will return NULL; */
         task = schedule_pop_task(worker->taskq);
         if (task) {
+            if (worker->check_connection)
+                worker->check_connection(worker);
             ods_log_debug("[%s] start working", worker->name);
             task_perform(worker->taskq, task, worker->context);
             ods_log_debug("[%s] finished working", worker->name);

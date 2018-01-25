@@ -167,7 +167,7 @@ run(int sockfd, cmdhandler_ctx_type* context, char *cmd)
         return 0;
     }
 
-    if (!(dbconn = get_database_connection(engine))) {
+    if (!(dbconn = get_database_connection(engine->dbcfg_list))) {
         client_printf_err(sockfd, "Failed to open DB connection.\n");
         client_exit(sockfd, 1);
         return -1;

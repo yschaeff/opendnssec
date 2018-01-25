@@ -35,8 +35,6 @@
 #include "janitor.h"
 #include "scheduler/task.h"
 
-//~ #include <time.h>
-
 struct engine_struct;
 
 typedef struct worker_struct worker_type;
@@ -46,6 +44,7 @@ struct worker_struct {
     janitor_thread_t thread_id;
     int need_to_exit;
     void* context;
+    void (*check_connection)(worker_type*);
     int tasksOutstanding;
     int tasksFailed;
     pthread_cond_t tasksBlocker;

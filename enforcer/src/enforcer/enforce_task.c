@@ -89,7 +89,7 @@ perform_enforce(int sockfd, engine_type *engine, char const *zonename,
     struct dbw_db *db = dbw_fetch(dbconn);
     if (!db) {
         ods_log_error("[%s] Error reading database", module_str);
-        return -1;
+        return time_now() + 60;
     }
     struct dbw_zone *zone = dbw_get_zone(db, zonename);
     if (!zone) {

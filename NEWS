@@ -1,5 +1,7 @@
 * would exit on SIGPIPE
 * impl look-ahead
+* OPENDNSSEC-913: Reconnect after MySQL connection loss. Also bug where enforcer
+    task got unscheduled when database connection was lost.
 * OPENDNSSEC-909
 * DS automatically to submitted even if there wasn't a DSsubmitCommand
     TODO: figure out this bug was before or after DBW
