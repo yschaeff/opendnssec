@@ -450,7 +450,7 @@ int dbw_zone_exists(db_connection_t *dbconn, char const *zonename);
 void dbw_policies_add_hsmkey(struct dbw_list *policies, struct dbw_hsmkey *hsmkey);
 void dbw_policies_add_zone(struct dbw_list *policies, struct dbw_zone *zone);
 
-//void dbw_dump_db(struct dbw_db *db);
+void dbw_dump_db(struct dbw_db *db);
 
 void sort_policies(const struct dbw_policy *arr[], int n);
 void sort_zones(const struct dbw_zone *arr[], int n);

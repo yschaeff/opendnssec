@@ -56,7 +56,7 @@
 
 #include "enforcer/enforcer.h"
 
-#undef DEBUG_ENFORCER_LOGIC
+#define DEBUG_ENFORCER_LOGIC
 
 #define HIDDEN      DBW_HIDDEN
 #define RUMOURED    DBW_RUMOURED
@@ -144,7 +144,7 @@ getDesiredState(int introducing, enum dbw_keystate_state state)
 {
     if (!introducing) {
         switch (state) {
-            case RUMOURED:
+            case RUMOURED:    return OMNIPRESENT;
             case OMNIPRESENT: return UNRETENTIVE;
             case UNRETENTIVE: return HIDDEN;
             default:          return state;
@@ -192,7 +192,27 @@ exists(struct future_key *future_key, int same_algorithm,
 {
     for (size_t k = 0; k < future_key->key->zone->key_count; k++) {
         struct dbw_key *key = future_key->key->zone->key[k];
-        if (match(key, future_key, same_algorithm, mask)) return 1;
+        if (match(key, future_key, same_algorithm, mask)) {
+      /*      if ( key->ds_at_parent != future_key->key->ds_at_parent) {*/
+                /*continue;*/
+      /*      }*/
+            return 1;
+        }
+    }
+    return 0;
+}
+static int
+exists2(struct future_key *future_key, int same_algorithm,
+    const enum dbw_keystate_state mask[4])
+{
+    for (size_t k = 0; k < future_key->key->zone->key_count; k++) {
+        struct dbw_key *key = future_key->key->zone->key[k];
+        if (match(key, future_key, same_algorithm, mask)) {
+            if ( key->ds_at_parent != future_key->key->ds_at_parent) {
+                continue;
+            }
+            return 1;
+        }
     }
     return 0;
 }
@@ -350,19 +370,37 @@ unsignedOk(struct future_key *future_key, const enum dbw_keystate_state mask[4],
          * are testing. */
         if (key->algorithm != future_key->key->algorithm) continue;
         /* States in mask might be influenced by future_key */
+#ifdef DEBUG_ENFORCER_LOGIC
+        ods_log_error("UNSIGNED: %d", key->id);
+#endif
         for (int i = 0; i < 4; i++) {
             if (i == type) {
                 cmp_mask[i] = getState(key, type, future_key);
             } else {
                 /*cmp_mask[i] = fixed[i];*/
                 cmp_mask[i] = mask[i];
+#ifdef DEBUG_ENFORCER_LOGIC
+        ods_log_error("UNSIGNED: %d , masked %d", key->id, i);
+#endif
             }
         }
         /* If the state is hidden or NA for the given type this key is okay. */
-        if (cmp_mask[type] == HIDDEN || cmp_mask[type] == NA) continue;
-        /* It is NOT okay to be insigned for this key unless there is a key
-         * (in the future) to which the mask applies */
-        if (!exists(future_key, 1, cmp_mask)) return 0;
+        if (cmp_mask[type] == HIDDEN || cmp_mask[type] == NA){
+#ifdef DEBUG_ENFORCER_LOGIC
+        ods_log_error("SKIPPED: %d", key->id);
+#endif
+            continue;
+        }
+#ifdef DEBUG_ENFORCER_LOGIC
+        ods_log_error("CHACKING: %d", key->id);
+#endif
+        /* It is NOT okay to be insigned for this key.
+         * UNLESS there is a key (in the future) to which the mask applies */
+        if (!exists2(future_key, 1, cmp_mask)) return 0;
+#ifdef DEBUG_ENFORCER_LOGIC
+        ods_log_error("%d %d %d %d", cmp_mask[0],cmp_mask[1],cmp_mask[2],   cmp_mask[3] );
+        ods_log_error("ACK: %d", key->id);
+#endif
     }
     return 1;
 }
@@ -504,6 +542,10 @@ dnssecApproval(struct future_key *future_key, int allow_unsigned)
      * rule2 - Handles DNSKEY states.
      * rule3 - Handles signatures.
      */
+#ifdef DEBUG_ENFORCER_LOGIC
+    ods_log_error("DEBUG future key");
+    ods_log_error("id,type,next,pret=%d %d %d %d", future_key->key->id, future_key->type, future_key->next_state, future_key->pretend_update);
+#endif
     return  ( !rule1(future_key, 0) || rule1(future_key, 1) || allow_unsigned )
          && ( !rule2(future_key, 0) || rule2(future_key, 1))
          && ( !rule3(future_key, 0) || rule3(future_key, 1));
@@ -743,6 +785,14 @@ markSuccessors(struct dbw_db *db, struct future_key *future_key)
             //TODO WE NEED a keydep delete func 
         }
     }
+    struct dbw_key *tokey = future_key->key;
+    if (future_key->next_state == HIDDEN) {
+        for (size_t d = 0; d < tokey->from_keydependency_count; d++) {
+            struct dbw_keydependency *dep = tokey->from_keydependency[d];
+            if (future_key->type != dep->type) continue;
+            dep->dirty = DBW_DELETE; /*unconditionally delete*/
+        }
+    }
 
     if (!isSuccessable(future_key)) return;
 
@@ -972,7 +1022,7 @@ updateZone(struct dbw_db *db, struct dbw_zone *zone, const time_t now,
                 if (next_state == keystate->state) continue;
                 if (is_ds_waiting_for_user(keystate, next_state)) continue;
 
-                ods_log_verbose("[%s] %s: May %s %s %s in state %s transition to %s?",
+                ods_log_error("[%s] %s: May %s %s %s in state %s transition to %s?",
                     module_str, scmd,
                     dbw_key_role_txt[key->role],
                     key->hsmkey->locator,
@@ -993,6 +1043,7 @@ updateZone(struct dbw_db *db, struct dbw_zone *zone, const time_t now,
                 ods_log_verbose("[%s] %s Policy says we can (1/3)", module_str, scmd);
 
                 /* Check if DNSSEC state prevents transition.  */
+                dbw_dump_db(db);
                 if (!dnssecApproval(&future_key, allow_unsigned)) continue;
                 ods_log_verbose("[%s] %s DNSSEC says we can (2/3)", module_str, scmd);
 
