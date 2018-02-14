@@ -277,7 +277,17 @@ successor(struct dbw_key *succkey, struct dbw_key *predkey,
 {
     /*s is successor of p when p depends on s or s'*/
 
-    if (predkey->to_keydependency_count > 0) return 0;
+    //BETTER check would be
+    //loop over all to dependencies, if there is a dependency for type
+    //and that key[type] is not hidden return 0 (not valid predecessor)
+    for (size_t d = 0; d < predkey->to_keydependency_count; d++) {
+        struct dbw_keydependency *keydep = predkey->to_keydependency[d];
+        if (keydep->type != type) continue;
+        if (keydep->dirty == DBW_DELETE) continue;
+        enum dbw_keystate_state state = getState(keydep->tokey, type, future_key);
+        if (state != HIDDEN) return 0;
+    }
+    /*if (predkey->to_keydependency_count > 0) return 0;*/
     /* trivial case where predecessor depends directly on successor. */
     for (size_t d = 0; d < predkey->from_keydependency_count; d++) {
         struct dbw_keydependency *keydep = predkey->from_keydependency[d];
